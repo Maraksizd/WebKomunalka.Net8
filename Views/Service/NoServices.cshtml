@@ -1,18 +1,11 @@
-﻿@model TModel
-
-@{
-    Layout = null;
+﻿@{
+ViewData["Title"] = "No Services";
 }
 
-<!DOCTYPE html>
+<h2>@ViewData["Title"]</h2>
 
-<html>
-<head>
-    <title>title</title>
-</head>
-<body>
-<div>
-      
-</div>
-</body>
-</html>
+<p>У вас немає наявних сервісів. Будь ласка, додайте їх.</p>
+
+<p>
+    @Html.ActionLink("Add Service", "Create", "Service", null, new { @class = "btn btn-primary" })
+</p>

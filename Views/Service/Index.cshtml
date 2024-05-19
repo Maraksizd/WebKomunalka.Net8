@@ -1,18 +1,39 @@
-﻿@model TModel
+﻿@model List<WebKomunalka.Net8.Models.Service>
 
 @{
-    Layout = null;
+ViewData["Title"] = "Services";
 }
 
-<!DOCTYPE html>
+<h2>@ViewData["Title"]</h2>
 
-<html>
-<head>
-    <title>title</title>
-</head>
-<body>
-<div>
-      
-</div>
-</body>
-</html>
+<!-- Додати кнопку для додавання сервісів -->
+<p>
+    @Html.ActionLink("Add Service", "AddService", "Service", null, new { @class = "btn btn-primary" })
+    <!-- або використовуючи тег <a> -->
+    <!-- <a href="@Url.Action("Create", "Service")" class="btn btn-primary">Add Service</a> -->
+</p>
+
+<table class="table">
+    <thead>
+    <tr>
+        <th>Service Name</th>
+        <th>Unit Price</th>
+        <th>Unit Type</th>
+        <th>Company</th>
+    </tr>
+    </thead>
+    <tbody>
+    @foreach (var service in Model)
+    {
+    <tr>
+        <td>@service.ServiceName</td>
+        <td>@service.UnitPrice</td>
+        <td>@service.UnitType</td>
+        <td>@service.Company</td>
+        <td>
+        @Html.ActionLink("Edit", "EditService", "Service", new { id = service.Id }, null) <!-- Додати посилання на редагування -->
+        </td>
+    </tr>
+    }
+    </tbody>
+</table>

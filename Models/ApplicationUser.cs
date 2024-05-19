@@ -1,6 +1,8 @@
-﻿namespace WebKomunalka.Net8.Models;
+﻿using Microsoft.AspNetCore.Identity;
 
-public class ApplicationUser
+namespace WebKomunalka.Net8.Models;
+
+public class ApplicationUser : IdentityUser
 {
-    
+    public virtual ICollection<Service> Services { get; set; } = new List<Service>();
 }

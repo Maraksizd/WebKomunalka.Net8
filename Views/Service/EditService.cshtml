@@ -1,18 +1,28 @@
-﻿@model TModel
+﻿@model WebKomunalka.Net8.Models.Service
 
 @{
-    Layout = null;
+ViewData["Title"] = "Edit Service";
 }
 
-<!DOCTYPE html>
+<h2>@ViewData["Title"]</h2>
 
-<html>
-<head>
-    <title>title</title>
-</head>
-<body>
-<div>
-      
-</div>
-</body>
-</html>
+<form asp-action="EditServicePost" asp-controller="Service" method="post">
+    <input type="hidden" asp-for="Id" />
+    <div class="form-group">
+        <label asp-for="ServiceName">Service Name</label>
+        <input asp-for="ServiceName" class="form-control" />
+    </div>
+    <div class="form-group">
+        <label asp-for="UnitPrice">Unit Price</label>
+        <input asp-for="UnitPrice" class="form-control" />
+    </div>
+    <div class="form-group">
+        <label asp-for="UnitType">Unit Type</label>
+        <input asp-for="UnitType" class="form-control" />
+    </div>
+    <div class="form-group">
+        <label asp-for="Company">Company</label>
+        <input asp-for="Company" class="form-control" />
+    </div>
+    <button type="submit" class="btn btn-primary">Save Changes</button>
+</form>
