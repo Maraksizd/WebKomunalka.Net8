@@ -1,0 +1,35 @@
+﻿@model IEnumerable<WebKomunalka.Net8.Models.Payment>
+
+<div class="container mt-3">
+    <div class="row">
+        <div class="col-12">
+            <h1>Сторінка платежів</h1>
+            <a href="@Url.Action("AddPayment", "Payment")" class="btn btn-primary mb-3">Додати новий платіж</a>
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <thead class="thead-dark">
+                        <tr>
+                            <th>Id</th>
+                            <th>Date</th>
+                            <th>Amount Usage</th>
+                            <th>Total Price</th>
+                            <th>Service Name</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var payment in Model)
+                        {
+                            <tr>
+                                <td>@payment.Id</td>
+                                <td>@payment.Date</td>
+                                <td>@payment.AmountUsage</td>
+                                <td>@payment.TotalPrice</td>
+                                <td>@payment.Service.ServiceName</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
