@@ -1,5 +1,6 @@
 ﻿@{
-    ViewData["Title"] = "Not Registered";
+    ViewData["Title"] = "You are";
+    ViewData["TitleRed"] = "not registered";
 }
 
 <div class="container mt-5">
@@ -7,7 +8,7 @@
         <div class="col-md-6">
             <div class="card">
                 <div class="card-header">
-                    <h2>@ViewData["Title"]</h2>
+                    <h2>@ViewData["Title"] <span style="color: red;">@ViewData["TitleRed"]</span></h2>
                 </div>
                 <div class="card-body">
                     <p class="card-text">Ви не зареєстровані. Будь ласка, зареєструйтеся або увійдіть.</p>

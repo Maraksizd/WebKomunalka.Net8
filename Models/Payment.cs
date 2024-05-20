@@ -12,5 +12,5 @@ public class Payment
 
     public int ServiceId { get; set; } = 0;
 
-    public Service Service { get; set; } = new Service();
+    public Service? Service { get; set; } = new Service();
 }

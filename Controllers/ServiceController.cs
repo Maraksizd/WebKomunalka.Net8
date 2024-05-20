@@ -51,13 +51,13 @@ public class ServiceController : Controller
         return View(newService);
     }
     
-    public async Task<IActionResult> AddServicePost(Service newService)
+    public async Task<IActionResult> AddServicePost(Service? newService)
     {
         if (ModelState.IsValid)
         {
             var currentUser = await _userManager.GetUserAsync(User);
             
-            var curentUserId = currentUser.Id;
+            var curentUserId = currentUser!.Id;
             
             newService.UserId = curentUserId;
             newService.User = null;
@@ -84,7 +84,7 @@ public class ServiceController : Controller
     {
         if (ModelState.IsValid)
         {
-            var curentService = _context.Services.Find(service.Id); // пояснення від ~ гуру ~
+            var curentService = _context.Services.Find(service.Id); 
             if (curentService == null)
             {
                 // Handle the case where the service does not exist
