@@ -11,9 +11,9 @@ public class ApplicationDbContext : IdentityDbContext
     {
     }
 
-    public DbSet<ApplicationUser> ApplicationUsers { get; set; }
-    public DbSet<Service?> Services { get; set; }
-    public DbSet<Payment> Payments { get; set; }
+    public DbSet<ApplicationUser>? ApplicationUsers { get; set; }
+    public DbSet<Service>? Services { get; set; }
+    public DbSet<Payment?> Payments { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

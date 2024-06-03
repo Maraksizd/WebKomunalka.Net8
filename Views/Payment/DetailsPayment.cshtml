@@ -1,0 +1,67 @@
+﻿<div class="container">
+    <div class="row">
+        <div class="col-md-6">
+            <div class="service-info">
+                <h2>Деталі сервісу:</h2>
+                <ul>
+                    <li>
+                        <strong>Назва Послуги:</strong> @Model.Service.ServiceName
+                    </li>
+                    <li>
+                        <strong>Ціна за Одиницю:</strong> @Model.Service.UnitPrice
+                    </li>
+                    <li>
+                        <strong>Тип Одиниці:</strong> @Model.Service.UnitType
+                    </li>
+                    <li>
+                        <strong>Компанія:</strong> @Model.Service.Company
+                    </li>
+                </ul>
+                <div class="col-md-6">
+                    <div class="payment-info">
+                        <h2>Деталі платежу:</h2>
+                        <ul>
+                            <li>
+                                <strong>Дата:</strong> @Model.Payment.Date
+                            </li>
+                            <li>
+                                <strong>Використана Кількість:</strong> @Model.Payment.AmountUsage
+                            </li>
+                            <li>
+                                <strong>Загальна Ціна:</strong> @Model.Payment.TotalPrice
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+</div>
+
+<style>
+    .container {
+        margin-top: 20px;
+    }
+
+    .service-info, .payment-info {
+        border: 1px solid #ccc;
+        padding: 20px;
+        border-radius: 5px;
+        margin-bottom: 20px;
+    }
+
+    .service-info h2, .payment-info h2 {
+        color: #007bff;
+    }
+
+    ul {
+        list-style-type: none;
+        padding: 0;
+    }
+
+    li {
+        margin-bottom: 5px;
+    }
+</style>

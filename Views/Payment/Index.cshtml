@@ -8,25 +8,41 @@
             <div class="table-responsive">
                 <table class="table table-striped">
                     <thead class="thead-dark">
-                        <tr>
-                            <th>Id</th>
-                            <th>Date</th>
-                            <th>Amount Usage</th>
-                            <th>Total Price</th>
-                            <th>Service Name</th>
-                        </tr>
+                    <tr>
+                        <th>
+                            <a href="@Url.Action("Index", "Payment", new { sortedBy = "Id" })" sortedBy="Id">Id</a>
+                        </th>
+                        <th>
+                            <a href="@Url.Action("Index", "Payment", new { sortedBy = "Date" })" sortedBy="Date">Date</a>
+                        </th>
+                        <th>
+                            <a href="@Url.Action("Index", "Payment", new { sortedBy = "AmountUsage" })" sortedBy="AmountUsage">Amount Usage</a>
+                        </th>
+                        <th>
+                            <a href="@Url.Action("Index", "Payment", new { sortedBy = "TotalPrice" })" sortedBy="TotalPrice">Total Price</a>
+                        </th>
+                        <th>
+                            <a href="@Url.Action("Index", "Payment", new { sortedBy = "ServiceName" })" sortedBy="ServiceName">Service Name</a>
+                        </th>
+                        <th id="actions">Actions</th>
+                    </tr>
                     </thead>
+
                     <tbody>
-                        @foreach (var payment in Model)
-                        {
-                            <tr>
-                                <td>@payment.Id</td>
-                                <td>@payment.Date</td>
-                                <td>@payment.AmountUsage</td>
-                                <td>@payment.TotalPrice</td>
-                                <td>@payment.Service.ServiceName</td>
-                            </tr>
-                        }
+                    @foreach (var payment in Model)
+                    {
+                        <tr>
+                            <td>@payment.Id</td>
+                            <td>@payment.Date</td>
+                            <td>@payment.AmountUsage</td>
+                            <td>@payment.TotalPrice</td>
+                            <td>@payment.Service.ServiceName</td>
+                            <td>
+                                <a href="@Url.Action("DeletePayment", "Payment", new { id = payment.Id })" class="btn" style="background-color: #a31414; color: #ffffff;">Видалити</a>
+                                <a href="@Url.Action("DetailsPayment", "Payment", new { id = payment.Id })" class="btn" style="background-color: #167a7d; color: #ffffff;">Деталі</a>
+                            </td>
+                        </tr>
+                    }
                     </tbody>
                 </table>
             </div>

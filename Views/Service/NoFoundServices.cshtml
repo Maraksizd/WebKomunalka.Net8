@@ -1,7 +1,7 @@
 ﻿@model List<WebKomunalka.Net8.Models.Service>
 
 @{
-ViewData["Title"] = "Services";
+    ViewData["Title"] = "Services";
 }
 
 <div class="container mt-3">
@@ -32,21 +32,11 @@ ViewData["Title"] = "Services";
                     </tr>
                     </thead>
                     <tbody>
-                    @foreach (var service in Model)
-                    {
-                    <tr>
-                        <td>@service.ServiceName</td>
-                        <td>@service.UnitPrice</td>
-                        <td>@service.UnitType</td>
-                        <td>@service.Company</td>
-                        <td>
-                            <a href="@Url.Action("EditService", "Service", new { id = service.Id })" class="btn btn-primary">Редагувати</a>
-                            <a href="@Url.Action("DeleteService", "Service", new { id = service.Id })" class="btn btn-danger">Видалити</a>
-                        </td>
-                    </tr>
-                    }
                     </tbody>
                 </table>
+                <div class="alert alert-danger text-center" role="alert">
+                    Сервісів НЕ знайдено
+                </div>
             </div>
         </div>
     </div>

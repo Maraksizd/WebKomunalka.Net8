@@ -4,5 +4,33 @@
 
 <div class="text-center">
     <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">Якась іформація</a>.</p>
 </div>
+
+@model HomeViewModel
+
+<!-- Ваш код ... -->
+
+<div class="card">
+    <div class="card-header">
+        Загальна ціна всіх оплат: @Model.TotalCost
+    </div>
+    <div class="card-body">
+        <h5 class="card-title">Топ 3 оплати:</h5>
+        <ul>
+            @foreach (var bigPayment in Model.BigPayments)
+            {
+                <li>
+                    Оплата: @bigPayment.Payment.TotalPrice, Відсоток: @bigPayment.Percentage.ToString("F1")%
+                    <a href="@Url.Action("DetailsPayment", "Payment", new { id = bigPayment.Payment.Id })"
+                       class="btn btn-primary"
+                       style="--bs-btn-padding-y: .10rem; --bs-btn-padding-x: .5rem; --bs-btn-font-size: .50rem; height: 2rem; width: 7rem;">
+                        Детальніше
+                    </a>
+                </li>
+            }
+        </ul>
+    </div>
+</div>
+
+<!-- Ваш код ... -->
