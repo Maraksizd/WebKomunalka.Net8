@@ -4,50 +4,89 @@
 ViewData["Title"] = "Services";
 }
 
-<div class="container mt-3">
-    <div class="row">
-        <div class="col-12">
-            <h1>@ViewData["Title"]</h1>
-            <a href="@Url.Action("AddService", "Service")" class="btn btn-primary mb-3">Додати новий сервіс</a>
+<h2 class="text-center my-4">@ViewData["Title"]</h2>
 
-            <!-- Форма для пошуку -->
-            <form method="get" action="@Url.Action("Index", "Service")">
-                <div class="form-group">
-                    <label for="searchQuery">Пошук</label>
-                    <input type="text" class="form-control" id="searchQuery" name="searchQuery" value="@ViewBag.SearchQuery" placeholder="Введіть назву сервісу">
-                </div>
-                <button type="submit" class="btn btn-primary">Знайти</button>
-                <a href="@Url.Action("Index", "Service", new { searchQuery = (string)null })" class="btn btn-secondary">Скинути фільтр</a>
-            </form>
-
-            <div class="table-responsive">
-                <table class="table table-striped">
-                    <thead class="thead-dark">
-                    <tr>
-                        <th>Service Name</th>
-                        <th>Unit Price</th>
-                        <th>Unit Type</th>
-                        <th>Company</th>
-                        <th>Actions</th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    @foreach (var service in Model)
-                    {
-                    <tr>
-                        <td>@service.ServiceName</td>
-                        <td>@service.UnitPrice</td>
-                        <td>@service.UnitType</td>
-                        <td>@service.Company</td>
-                        <td>
-                            <a href="@Url.Action("EditService", "Service", new { id = service.Id })" class="btn btn-primary">Редагувати</a>
-                            <a href="@Url.Action("DeleteService", "Service", new { id = service.Id })" class="btn btn-danger">Видалити</a>
-                        </td>
-                    </tr>
-                    }
-                    </tbody>
-                </table>
-            </div>
+<div class="container">
+    <form method="get" action="@Url.Action("Index", "Service")" class="row mb-4">
+        <div class="col-md-3">
+            <label for="filterServiceName" class="form-label">Назва сервісу</label>
+            <input type="text" class="form-control" id="filterServiceName" name="filterServiceName" value="@ViewBag.FilterServiceName">
         </div>
+        <div class="col-md-3">
+            <label for="filterUnitPrice" class="form-label">Ціна за одиницю</label>
+            <input type="number" class="form-control" id="filterUnitPrice" name="filterUnitPrice" value="@ViewBag.FilterUnitPrice">
+        </div>
+        <div class="col-md-3">
+            <label for="filterUnitType" class="form-label">Тип одиниці</label>
+            <input type="text" class="form-control" id="filterUnitType" name="filterUnitType" value="@ViewBag.FilterUnitType">
+        </div>
+        <div class="col-md-3">
+            <label for="filterCompany" class="form-label">Компанія</label>
+            <input type="text" class="form-control" id="filterCompany" name="filterCompany" value="@ViewBag.FilterCompany">
+        </div>
+        <div class="col-md-12 mt-3">
+            <button type="submit" class="btn btn-primary">Застосувати</button>
+            <a href="@Url.Action("Index", "Service", new { searchQuery = (string)null })" class="btn btn-secondary">Скинути фільтри</a>
+        </div>
+    </form>
+
+    <div class="row mb-3">
+        <div class="col-md-12 text-end">
+            <a href="@Url.Action("AddService", "Service")" class="btn btn-success">Додати новий сервіс</a>
+        </div>
+    </div>
+
+    <div class="table-responsive">
+        @if (Model == null || !Model.Any())
+        {
+        <div class="alert alert-danger text-center" role="alert">
+            Сервісів НЕ знайдено
+        </div>
+        <table class="table table-striped" style="background-color: #f8d7da;">
+            <thead class="thead-dark">
+            <tr>
+                <th>Service Name</th>
+                <th>Unit Price</th>
+                <th>Unit Type</th>
+                <th>Company</th>
+                <th>Actions</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr>
+                <td colspan="5" class="text-center">Сервісів НЕ знайдено</td>
+            </tr>
+            </tbody>
+        </table>
+        }
+        else
+        {
+        <table class="table table-striped">
+            <thead class="thead-dark">
+            <tr>
+                <th>Service Name</th>
+                <th>Unit Price</th>
+                <th>Unit Type</th>
+                <th>Company</th>
+                <th>Actions</th>
+            </tr>
+            </thead>
+            <tbody>
+            @foreach (var service in Model)
+            {
+            <tr>
+                <td>@service.ServiceName</td>
+                <td>@service.UnitPrice</td>
+                <td>@service.UnitType</td>
+                <td>@service.Company</td>
+                <td>
+                    <a href="@Url.Action("EditService", "Service", new { id = service.Id })" class="btn btn-info btn-sm">Редагувати</a>
+                    <a href="@Url.Action("DeleteService", "Service", new { id = service.Id })" class="btn btn-danger btn-sm">Видалити</a>
+                </td>
+            </tr>
+            }
+            </tbody>
+        </table>
+        }
     </div>
 </div>

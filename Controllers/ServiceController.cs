@@ -1,4 +1,7 @@
-﻿using System.Diagnostics;
+﻿using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -18,28 +21,57 @@ public class ServiceController : Controller
         _userManager = userManager;
     }
 
-    public async Task<IActionResult> Index(string? searchQuery)
+    // check userId
+    public string takeUserId()
+    {
+        string userId = "NotFound";
+
+        var cUser = _userManager.GetUserAsync(User).Result;
+
+        if (cUser == null)
+        {
+            userId = null;
+        }
+
+        userId = cUser.Id;
+
+        return userId;
+    }
+    
+    // функція для сортування
+    public List<Service> SortServices(string sortedBy, List<Service> services)
+    {
+        switch (sortedBy)
+        {
+            case "ServiceName":
+                return services.OrderBy(s => s.ServiceName).ToList();
+            case "UnitPrice":
+                return services.OrderBy(s => s.UnitPrice).ToList();
+            case "UnitType":
+                return services.OrderBy(s => s.UnitType).ToList();
+            case "Company":
+                return services.OrderBy(s => s.Company).ToList();
+            default:
+                return services;
+        }
+    }
+    
+    public async Task<IActionResult> Index(string? filterServiceName, double? filterUnitPrice, string? filterUnitType, string? filterCompany)
     {
         // Визначити, хто авторизований
-        var currentUser = await _userManager.GetUserAsync(User);
+        var currentUserId = takeUserId();
 
-        if (currentUser == null)
-        {
-            return View("NotRegistered");
-        }
-
-        var currentUserId = currentUser.Id;
-
+        
         var services = _context.Services.Where(s => s.UserId == currentUserId);
 
-        if (!string.IsNullOrEmpty(searchQuery))
-        {
-            services = services.Where(s =>
-                s.ServiceName.Contains(searchQuery) || 
-                s.UnitPrice.ToString().Contains(searchQuery) ||
-                s.UnitType.Contains(searchQuery) ||
-                s.Company.Contains(searchQuery));
-        }
+        // if (!string.IsNullOrEmpty(searchQuery))
+        // {
+        //     services = services.Where(s =>
+        //         s.ServiceName.Contains(searchQuery) || 
+        //         s.UnitPrice.ToString().Contains(searchQuery) ||
+        //         s.UnitType.Contains(searchQuery) ||
+        //         s.Company.Contains(searchQuery));
+        // }
 
         var vd = await services.ToListAsync();
 

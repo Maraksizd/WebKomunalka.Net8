@@ -1,51 +1,99 @@
-﻿@model IEnumerable<WebKomunalka.Net8.Models.Payment>
+﻿@model PaymentViewIndexModel
 
-<div class="container mt-3">
-    <div class="row">
-        <div class="col-12">
-            <h1>Сторінка платежів</h1>
-            <a href="@Url.Action("AddPayment", "Payment")" class="btn btn-primary mb-3">Додати новий платіж</a>
-            <div class="table-responsive">
-                <table class="table table-striped">
-                    <thead class="thead-dark">
-                    <tr>
-                        <th>
-                            <a href="@Url.Action("Index", "Payment", new { sortedBy = "Id" })" sortedBy="Id">Id</a>
-                        </th>
-                        <th>
-                            <a href="@Url.Action("Index", "Payment", new { sortedBy = "Date" })" sortedBy="Date">Date</a>
-                        </th>
-                        <th>
-                            <a href="@Url.Action("Index", "Payment", new { sortedBy = "AmountUsage" })" sortedBy="AmountUsage">Amount Usage</a>
-                        </th>
-                        <th>
-                            <a href="@Url.Action("Index", "Payment", new { sortedBy = "TotalPrice" })" sortedBy="TotalPrice">Total Price</a>
-                        </th>
-                        <th>
-                            <a href="@Url.Action("Index", "Payment", new { sortedBy = "ServiceName" })" sortedBy="ServiceName">Service Name</a>
-                        </th>
-                        <th id="actions">Actions</th>
-                    </tr>
-                    </thead>
+@{
+    ViewData["Title"] = "Payments";
+    var services = ViewBag.Services as List<WebKomunalka.Net8.Models.Service>;
+    var sortOptions = ViewBag.SortOptions as List<string>;
+    var sortedBy = ViewBag.SortedBy as string;
+}
 
-                    <tbody>
-                    @foreach (var payment in Model)
+<h2 class="text-center my-4">@ViewData["Title"]</h2>
+
+<div class="container">
+    <form method="get" class="row mb-4">
+        <div class="col-md-3">
+            <label for="filterServiceName" class="form-label">Назва сервісу</label>
+            <select id="filterServiceName" name="filterServiceName" class="form-select">
+                <option value="">Select a service</option>
+                @if (services != null)
+                {
+                    foreach (var service in services)
                     {
-                        <tr>
-                            <td>@payment.Id</td>
-                            <td>@payment.Date</td>
-                            <td>@payment.AmountUsage</td>
-                            <td>@payment.TotalPrice</td>
-                            <td>@payment.Service.ServiceName</td>
-                            <td>
-                                <a href="@Url.Action("DeletePayment", "Payment", new { id = payment.Id })" class="btn" style="background-color: #a31414; color: #ffffff;">Видалити</a>
-                                <a href="@Url.Action("DetailsPayment", "Payment", new { id = payment.Id })" class="btn" style="background-color: #167a7d; color: #ffffff;">Деталі</a>
-                            </td>
-                        </tr>
+                        <option value="@service.ServiceName">@service.ServiceName</option>
                     }
-                    </tbody>
-                </table>
-            </div>
+                }
+            </select>
+        </div>
+
+        <div class="col-md-3">
+            <label for="filterAmountUsage" class="form-label">Amount Usage</label>
+            <input type="text" id="filterAmountUsage" name="filterAmountUsage" class="form-control" placeholder="Filter by Amount Usage" />
+        </div>
+
+        <div class="col-md-3">
+            <label for="filterTotalPrice" class="form-label">Total Price</label>
+            <input type="text" id="filterTotalPrice" name="filterTotalPrice" class="form-control" placeholder="Filter by Total Price" />
+        </div>
+
+        <div class="col-md-3">
+            <label for="sortedBy" class="form-label">Сортування за</label>
+            <select id="sortedBy" name="sortedBy" class="form-select">
+                <option value="">Select an option</option>
+                <option value="Id">Id</option>
+                <option value="Date">Date</option>
+                <option value="Amount Usage">Amount Usage</option>
+                <option value="Total Price">Total Price</option>
+            </select>
+        </div>
+
+
+        <div class="col-md-12 mt-3">
+            <button type="submit" class="btn btn-primary">Застосувати</button>
+            <a href="@Url.Action("Index")" class="btn btn-secondary">Скинути фільтри</a>
+        </div>
+    </form>
+
+    <div class="row mb-3">
+        <div class="col-md-12 text-end">
+            <a href="@Url.Action("Create")" class="btn btn-success">Додати новий платіж</a>
         </div>
     </div>
+
+    <table class="table table-striped table-bordered">
+        <thead>
+            <tr>
+                <th>Id</th>
+                <th>Date</th>
+                <th>Amount Usage</th>
+                <th>Total Price</th>
+                <th>Service Name</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (Model._uPayments != null && Model._uPayments.Any())
+            {
+                foreach (var payment in Model._uPayments)
+                {
+                    <tr>
+                        <td>@payment.Id</td>
+                        <td>@payment.Date</td> <!-- Shortened date format -->
+                        <td>@payment.AmountUsage</td>
+                        <td>@payment.TotalPrice</td>
+                        <td>@Model.GetServiceNameById(payment.ServiceId)</td>
+                        <td>
+                            <a href="@Url.Action("Details", new { id = payment.Id })" class="btn btn-info btn-sm">Деталі</a>
+                            <a href="@Url.Action("Delete", new { id = payment.Id })" class="btn btn-danger btn-sm">Видалити</a>
+                        </td>
+                    </tr>
+                }
+            }
+            else
+            {
+                <tr>
+                    <td colspan="6" class="text-center">No payments found</td>
+                </tr>
+            }
+        </tbody>
+    </table>
 </div>
