@@ -4,6 +4,7 @@ using System.Linq;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using NuGet.Protocol.Core.Types;
 using WebKomunalka.Net8.Data;
 using WebKomunalka.Net8.Models;
 
@@ -12,16 +13,12 @@ namespace WebKomunalka.Net8.Controllers;
 public class PaymentController(ApplicationDbContext context, UserManager<IdentityUser> userManager)
     : Controller
 {
-    private readonly ApplicationDbContext _context = context;
-    private readonly UserManager<IdentityUser> _userManager = userManager;
-
-
     // check id User
     public string takeUserId()
     {
         string userId = "";
 
-        var cUser = _userManager.GetUserAsync(User).Result;
+        var cUser = userManager.GetUserAsync(User).Result;
 
         userId = Convert.ToString(cUser.Id);
 
@@ -29,15 +26,10 @@ public class PaymentController(ApplicationDbContext context, UserManager<Identit
     }
 
     // перевіряє чи поля для фільтрів/сортування не пусті
-    public List<string> InputValidation(string? sortedBy, string? filterServiceName, string? filterAmountUsage,
+    public List<string> InputValidation(string? filterServiceName, string? filterAmountUsage,
         string? filterTotalPrice)
     {
         List<string> notEmptyValues = new List<string>();
-
-        if (sortedBy != null)
-        {
-            notEmptyValues.Add(sortedBy);
-        }
 
         if (filterServiceName != null)
         {
@@ -57,124 +49,142 @@ public class PaymentController(ApplicationDbContext context, UserManager<Identit
         return notEmptyValues;
     }
 
-    // повертає відфільтровані оплати
     public List<Payment> PaymentSearch(List<string> parameters)
     {
-        var cUser = _userManager.GetUserAsync(User).Result;
-        var currentUserId = cUser.Id;
+        var userId = takeUserId();
 
-        // Start with all payments related to the current user's services
-        var query = _context.Payments
+        // Отримання всіх платежів користувача
+        List<Payment> userPayments = context.Payments
             .Include(p => p.Service)
-            .Where(p => p.Service != null && p.Service.UserId == currentUserId);
+            .Where(p => p.Service != null && p.Service.UserId == userId)
+            .ToList();
 
-        // Apply filters based on the parameters
-        foreach (var param in parameters)
+        if (parameters.Count != 0)
         {
-            switch (param.ToLower())
+            List<Payment> foundPayments = new List<Payment>();
+
+            foreach (var payment in userPayments)
             {
-                case"Id":
-                    query = query.Where(p => p.Id != null);
-                    break;
-                case "service name":
-                    // Assuming you have a 'ServiceName' property on the Service entity
-                    query = query.Where(p => p.Service.ServiceName != null);
-                    break;
-                case "amount usage":
-                    // Assuming you have an 'AmountUsage' property on the Payment entity
-                    query = query.Where(p => p.AmountUsage != null);
-                    break;
-                case "total price":
-                    // Assuming you have a 'TotalPrice' property on the Payment entity
-                    query = query.Where(p => p.TotalPrice != null);
-                    break;
-                default:
-                    // Handle unknown parameters or ignore them
-                    break;
+                if (MatchesAnyParameter(payment, parameters))
+                {
+                    foundPayments.Add(payment);
+                }
+            }
+
+            return foundPayments;
+        }
+        else
+        {
+            return userPayments;
+        }
+    }
+
+
+    private bool MatchesAnyParameter(Payment payment, List<string> parameters)
+    {
+        foreach (var parameter in parameters)
+        {
+            if (payment.ServiceId.ToString() == parameter)
+            {
+                return true;
+            }
+
+            if (payment.AmountUsage.ToString() == parameter)
+            {
+                return true;
+            }
+
+            if (payment.TotalPrice.ToString() == parameter)
+            {
+                return true;
+            }
+
+            // Assuming Date is of type string
+            if (payment.Date == parameter)
+            {
+                return true;
             }
         }
 
-        // Execute the query and return the results
-        List<Payment> payments = query.ToList();
-        return payments;
+        return false;
     }
 
 
     // повертає відсортовані оплати
     public List<Payment> GetSortedPayments(string sortedBy, List<Payment> inputPayments)
     {
-        switch (sortedBy)
+        return sortedBy switch
         {
-            case "Id":
-                return inputPayments.OrderBy(payment => payment.Id).ToList();
-            case "AmountUsage":
-                return inputPayments.OrderBy(payment => payment.AmountUsage).ToList();
-            case "ServiceId":
-                return inputPayments.OrderBy(payment => payment.ServiceId).ToList();
-            case "Date":
-                // Assuming 'Date' is a string representation of date, you might need to parse it first.
-                return inputPayments.OrderBy(payment => DateTime.Parse(payment.Date)).ToList();
-            case "TotalPrice":
-                return inputPayments.OrderBy(payment => payment.TotalPrice).ToList();
-            // Add other sorting options as needed
-            default:
-                return inputPayments;
-        }
+            "Id" => inputPayments.OrderBy(payment => payment.Id).ToList(),
+            "AmountUsage" => inputPayments.OrderBy(payment => payment.AmountUsage).ToList(),
+            "ServiceId" => inputPayments.OrderBy(payment => payment.ServiceId).ToList(),
+            "Date" => inputPayments
+                .OrderBy(payment => DateTime.TryParse(payment.Date, out var date) ? date : DateTime.MinValue).ToList(),
+            "TotalPrice" => inputPayments.OrderBy(payment => payment.TotalPrice).ToList(),
+            _ => inputPayments
+        };
     }
 
+    public List<Service> GetUserServices(string userId)
+    {
+        return context.Services!.Where(s => s.UserId == userId).ToList();
+    }
 
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    public IActionResult Index(string? sortedBy, string? filterServiceName, string? filterAmountUsage,
-        string? filterTotalPrice)
+    public IActionResult Index(string? sortedBy, string? filterServiceName, string? filterAmountUsage, string? filterTotalPrice, int page = 1)
     {
-        // Опції для сортування
-        List<string> sortByOptions = new List<string> { "Amount Usage", "Total Price" };
+        var currentUser = takeUserId();
 
-        // Отримання ідентифікатора поточного користувача
-        var userId = takeUserId(); // Припускається, що ця функція повертає ідентифікатор поточного користувача
+        List<string> searchParameters = InputValidation(filterServiceName, filterAmountUsage, filterTotalPrice);
+        List<Service> userServices = GetUserServices(currentUser);
 
-        // Отримання списку послуг поточного користувача
-        List<Service> userServices = _context.Services
-            .Where(s => s.UserId == userId)
-            .ToList();
+        List<Payment> userPayments;
+        int pageSize = 8;
 
-        // Валідація та підготовка вхідних параметрів для фільтрації
-        List<string> inputParameters =
-            InputValidation(sortedBy, filterServiceName, filterAmountUsage, filterTotalPrice);
-
-        // Пошук платежів за вказаними параметрами
-        List<Payment> filteredPayments = PaymentSearch(inputParameters);
-
-        ViewBag.Services = userServices;
-        ViewBag.searchParameters = inputParameters;
-        ViewBag.SortBy = sortByOptions;
-
-        // Логіка відображення відсортованих або несортованих платежів
-        // Логіка відображення відсортованих або несортованих платежів
-        if (!(inputParameters != null || inputParameters.Count == 0))
+        if (searchParameters.Count == 0)
         {
-            // Якщо список параметрів фільтрації порожній, відображати невідсортовані платежі
-            PaymentViewIndexModel model = new PaymentViewIndexModel(filteredPayments, userServices);
-            return View(model);
+            userPayments = context.Payments
+                .Include(p => p.Service)
+                .Where(p => p.Service != null && p.Service.UserId == currentUser)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToList();
+
+            if (sortedBy != null)
+            {
+                userPayments = GetSortedPayments(sortedBy, userPayments);
+            }
         }
         else
         {
-            // Якщо в списку є параметри фільтрації, сортувати платежі і відображати
-            List<Payment> sortedPayments = GetSortedPayments(sortedBy, filteredPayments);
-            PaymentViewIndexModel model = new PaymentViewIndexModel(sortedPayments, userServices);
-            return View(model);
+            userPayments = PaymentSearch(searchParameters)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToList();
+
+            if (sortedBy != null)
+            {
+                userPayments = GetSortedPayments(sortedBy, userPayments);
+            }
         }
 
+        int totalPayments = context.Payments.Count(p => p.Service != null && p.Service.UserId == currentUser);
+        int totalPages = (int)Math.Ceiling(totalPayments / (double)pageSize);
+
+        PaymentViewIndexModel model = new PaymentViewIndexModel(userPayments, userServices, page, totalPages);
+
+        return View(model);
     }
+
 
 
     public IActionResult AddPayment()
     {
-        var currentUser = _userManager.GetUserAsync(User).Result;
+        var currentUser = userManager.GetUserAsync(User).Result;
         var currentUserId = currentUser.Id;
 
-        var services = _context.Services.Where(s => s.UserId == currentUserId).ToList();
+        var services = context.Services.Where(s => s.UserId == currentUserId).ToList();
 
         Payment newPayment = new Payment();
 
@@ -188,9 +198,9 @@ public class PaymentController(ApplicationDbContext context, UserManager<Identit
         {
             newPayment.Service = null;
 
-            _context.Payments.Add(newPayment);
+            context.Payments.Add(newPayment);
 
-            _context.SaveChangesAsync();
+            context.SaveChangesAsync();
 
             return RedirectToAction("Index");
         }
@@ -202,15 +212,15 @@ public class PaymentController(ApplicationDbContext context, UserManager<Identit
 
     public IActionResult DeletePayment(int id)
     {
-        var payment = _context.Payments.Find(id);
+        var payment = context.Payments.Find(id);
 
         if (payment == null)
         {
             return NotFound();
         }
 
-        _context.Payments.Remove(payment);
-        _context.SaveChangesAsync();
+        context.Payments.Remove(payment);
+        context.SaveChangesAsync();
 
         return RedirectToAction("Index");
     }
@@ -218,7 +228,7 @@ public class PaymentController(ApplicationDbContext context, UserManager<Identit
 
     public IActionResult DetailsPayment(int id)
     {
-        var payment = _context.Payments.Include(p => p.Service).FirstOrDefault(p => p.Id == id);
+        var payment = context.Payments.Include(p => p.Service).FirstOrDefault(p => p.Id == id);
 
         if (payment == null)
         {

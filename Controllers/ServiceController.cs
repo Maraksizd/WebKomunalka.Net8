@@ -22,7 +22,7 @@ public class ServiceController : Controller
     }
 
     // check userId
-    public string takeUserId()
+    public string TakeUserId()
     {
         string userId = "NotFound";
 
@@ -59,7 +59,7 @@ public class ServiceController : Controller
     public async Task<IActionResult> Index(string? filterServiceName, double? filterUnitPrice, string? filterUnitType, string? filterCompany)
     {
         // Визначити, хто авторизований
-        var currentUserId = takeUserId();
+        var currentUserId = TakeUserId();
 
         
         var services = _context.Services.Where(s => s.UserId == currentUserId);
