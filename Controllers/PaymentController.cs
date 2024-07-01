@@ -1,47 +1,44 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using NuGet.Protocol.Core.Types;
 using WebKomunalka.Net8.Data;
 using WebKomunalka.Net8.Models;
 
 namespace WebKomunalka.Net8.Controllers;
 
-public class PaymentController(ApplicationDbContext context, UserManager<IdentityUser> userManager)
-    : Controller
+public class PaymentController : Controller
 {
-    // check id User
-    public string takeUserId()
+    private readonly UserManager<ApplicationUser> userManager;
+    private readonly ApplicationDbContext context;
+
+    public PaymentController(UserManager<ApplicationUser> userManager, ApplicationDbContext context)
     {
-        string userId = "";
-
-        var cUser = userManager.GetUserAsync(User).Result;
-
-        userId = Convert.ToString(cUser.Id);
-
-        return userId;
+        this.userManager = userManager;
+        this.context = context;
     }
 
-    // перевіряє чи поля для фільтрів/сортування не пусті
-    public List<string> InputValidation(string? filterServiceName, string? filterAmountUsage,
-        string? filterTotalPrice)
+    public async Task<string> TakeUserIdAsync()
     {
-        List<string> notEmptyValues = new List<string>();
+        var cUser = await userManager.GetUserAsync(User);
+        return cUser?.Id ?? string.Empty;
+    }
 
-        if (filterServiceName != null)
+    // Перевіряє чи поля для фільтрів/сортування не пусті
+    public List<string> InputValidation(string? filterServiceName, string? filterAmountUsage, string? filterTotalPrice)
+    {
+        var notEmptyValues = new List<string>();
+
+        if (!string.IsNullOrEmpty(filterServiceName))
         {
             notEmptyValues.Add(filterServiceName);
         }
 
-        if (filterAmountUsage != null)
+        if (!string.IsNullOrEmpty(filterAmountUsage))
         {
             notEmptyValues.Add(filterAmountUsage);
         }
 
-        if (filterTotalPrice != null)
+        if (!string.IsNullOrEmpty(filterTotalPrice))
         {
             notEmptyValues.Add(filterTotalPrice);
         }
@@ -49,36 +46,44 @@ public class PaymentController(ApplicationDbContext context, UserManager<Identit
         return notEmptyValues;
     }
 
-    public List<Payment> PaymentSearch(List<string> parameters)
+    public async Task<List<Payment>> PaymentSearchAsync(string? filterServiceName, string? filterAmountUsageMin,
+        string? filterAmountUsageMax, string? filterTotalPriceMin, string? filterTotalPriceMax)
     {
-        var userId = takeUserId();
+        var userId = await TakeUserIdAsync();
 
         // Отримання всіх платежів користувача
-        List<Payment> userPayments = context.Payments
+        var userPayments = await context.Payments
             .Include(p => p.Service)
             .Where(p => p.Service != null && p.Service.UserId == userId)
-            .ToList();
+            .ToListAsync();
 
-        if (parameters.Count != 0)
+        if (!string.IsNullOrEmpty(filterServiceName))
         {
-            List<Payment> foundPayments = new List<Payment>();
-
-            foreach (var payment in userPayments)
-            {
-                if (MatchesAnyParameter(payment, parameters))
-                {
-                    foundPayments.Add(payment);
-                }
-            }
-
-            return foundPayments;
+            userPayments = userPayments.Where(p => p.Service.ServiceName.Contains(filterServiceName)).ToList();
         }
-        else
+
+        if (!string.IsNullOrEmpty(filterAmountUsageMin) && double.TryParse(filterAmountUsageMin, out double minUsage))
         {
-            return userPayments;
+            userPayments = userPayments.Where(p => p.AmountUsage >= minUsage).ToList();
         }
+
+        if (!string.IsNullOrEmpty(filterAmountUsageMax) && double.TryParse(filterAmountUsageMax, out double maxUsage))
+        {
+            userPayments = userPayments.Where(p => p.AmountUsage <= maxUsage).ToList();
+        }
+
+        if (!string.IsNullOrEmpty(filterTotalPriceMin) && double.TryParse(filterTotalPriceMin, out double minPrice))
+        {
+            userPayments = userPayments.Where(p => p.TotalPrice >= minPrice).ToList();
+        }
+
+        if (!string.IsNullOrEmpty(filterTotalPriceMax) && double.TryParse(filterTotalPriceMax, out double maxPrice))
+        {
+            userPayments = userPayments.Where(p => p.TotalPrice <= maxPrice).ToList();
+        }
+
+        return userPayments;
     }
-
 
     private bool MatchesAnyParameter(Payment payment, List<string> parameters)
     {
@@ -109,8 +114,7 @@ public class PaymentController(ApplicationDbContext context, UserManager<Identit
         return false;
     }
 
-
-    // повертає відсортовані оплати
+    // Повертає відсортовані оплати
     public List<Payment> GetSortedPayments(string sortedBy, List<Payment> inputPayments)
     {
         return sortedBy switch
@@ -125,31 +129,32 @@ public class PaymentController(ApplicationDbContext context, UserManager<Identit
         };
     }
 
-    public List<Service> GetUserServices(string userId)
+    public async Task<List<Service>> GetUserServicesAsync(string userId)
     {
-        return context.Services!.Where(s => s.UserId == userId).ToList();
+        return await context.Services!.Where(s => s.UserId == userId).ToListAsync();
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    public IActionResult Index(string? sortedBy, string? filterServiceName, string? filterAmountUsage, string? filterTotalPrice, int page = 1)
+    public async Task<IActionResult> Index(string? sortedBy, string? filterServiceName, string? filterAmountUsage,
+        string? filterTotalPrice, int page = 1)
     {
-        var currentUser = takeUserId();
+        var currentUser = await TakeUserIdAsync();
 
-        List<string> searchParameters = InputValidation(filterServiceName, filterAmountUsage, filterTotalPrice);
-        List<Service> userServices = GetUserServices(currentUser);
+        var searchParameters = InputValidation(filterServiceName, filterAmountUsage, filterTotalPrice);
+        var userServices = await GetUserServicesAsync(currentUser);
 
         List<Payment> userPayments;
         int pageSize = 8;
 
         if (searchParameters.Count == 0)
         {
-            userPayments = context.Payments
+            userPayments = await context.Payments
                 .Include(p => p.Service)
                 .Where(p => p.Service != null && p.Service.UserId == currentUser)
                 .Skip((page - 1) * pageSize)
                 .Take(pageSize)
-                .ToList();
+                .ToListAsync();
 
             if (sortedBy != null)
             {
@@ -158,10 +163,8 @@ public class PaymentController(ApplicationDbContext context, UserManager<Identit
         }
         else
         {
-            userPayments = PaymentSearch(searchParameters)
-                .Skip((page - 1) * pageSize)
-                .Take(pageSize)
-                .ToList();
+            userPayments = await PaymentSearchAsync(filterServiceName, filterAmountUsage, null, filterTotalPrice, null);
+            userPayments = userPayments.Skip((page - 1) * pageSize).Take(pageSize).ToList();
 
             if (sortedBy != null)
             {
@@ -169,14 +172,14 @@ public class PaymentController(ApplicationDbContext context, UserManager<Identit
             }
         }
 
-        int totalPayments = context.Payments.Count(p => p.Service != null && p.Service.UserId == currentUser);
+        int totalPayments =
+            await context.Payments.CountAsync(p => p.Service != null && p.Service.UserId == currentUser);
         int totalPages = (int)Math.Ceiling(totalPayments / (double)pageSize);
 
-        PaymentViewIndexModel model = new PaymentViewIndexModel(userPayments, userServices, page, totalPages);
+        var model = new PaymentViewIndexModel(userPayments, userServices, page, totalPages);
 
         return View(model);
     }
-
 
 
     public IActionResult AddPayment()

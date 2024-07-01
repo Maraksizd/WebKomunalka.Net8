@@ -1,9 +1,9 @@
 ﻿@model PaymentViewIndexModel
 
 @{
-ViewData["Title"] = "Payments";
-var totalPages = Model.TotalPages;
-var currentPage = Model.CurrentPage;
+    ViewData["Title"] = "Payments";
+    var totalPages = Model.TotalPages;
+    var currentPage = Model.CurrentPage;
 }
 
 <h2 class="text-center my-4">@ViewData["Title"]</h2>
@@ -32,28 +32,28 @@ var currentPage = Model.CurrentPage;
                 </tr>
                 </thead>
                 <tbody>
-                @if (Model._uPayments != null && Model._uPayments.Any())
+                @if (Model.Payments != null && Model.Payments.Any())
                 {
-                foreach (var payment in Model._uPayments)
-                {
-                <tr>
-                    <td>@payment.Id</td>
-                    <td>@payment.Date</td>
-                    <td>@payment.AmountUsage</td>
-                    <td>@payment.TotalPrice</td>
-                    <td>@Model.GetServiceNameById(payment.ServiceId)</td>
-                    <td>
-                        <a href="@Url.Action("Details", new { id = payment.Id })" class="btn btn-info btn-sm">Деталі</a>
-                        <a href="@Url.Action("Delete", new { id = payment.Id })" class="btn btn-danger btn-sm">Видалити</a>
-                    </td>
-                </tr>
-                }
+                    foreach (var payment in Model.Payments)
+                    {
+                        <tr>
+                            <td>@payment.Id</td>
+                            <td>@payment.Date</td>
+                            <td>@payment.AmountUsage</td>
+                            <td>@payment.TotalPrice</td>
+                            <td>@Model.GetServiceNameById(payment.ServiceId)</td>
+                            <td>
+                                <a href="@Url.Action("Details", new { id = payment.Id })" class="btn btn-info btn-sm">Деталі</a>
+                                <a href="@Url.Action("Delete", new { id = payment.Id })" class="btn btn-danger btn-sm">Видалити</a>
+                            </td>
+                        </tr>
+                    }
                 }
                 else
                 {
-                <tr>
-                    <td colspan="6" class="text-center">No payments found</td>
-                </tr>
+                    <tr>
+                        <td colspan="6" class="text-center">No payments found</td>
+                    </tr>
                 }
                 </tbody>
             </table>
@@ -65,9 +65,9 @@ var currentPage = Model.CurrentPage;
                     </li>
                     @for (int i = 1; i <= totalPages; i++)
                     {
-                    <li class="page-item @(currentPage == i ? "active" : "")">
-                        <a class="page-link" href="@Url.Action("Index", new { page = i, sortedBy = ViewBag.SortedBy, filterServiceName = ViewBag.FilterServiceName, filterAmountUsage = ViewBag.FilterAmountUsage, filterTotalPrice = ViewBag.FilterTotalPrice })">@i</a>
-                    </li>
+                        <li class="page-item @(currentPage == i ? "active" : "")">
+                            <a class="page-link" href="@Url.Action("Index", new { page = i, sortedBy = ViewBag.SortedBy, filterServiceName = ViewBag.FilterServiceName, filterAmountUsage = ViewBag.FilterAmountUsage, filterTotalPrice = ViewBag.FilterTotalPrice })">@i</a>
+                        </li>
                     }
                     <li class="page-item @(currentPage == totalPages ? "disabled" : "")">
                         <a class="page-link" href="@Url.Action("Index", new { page = currentPage + 1, sortedBy = ViewBag.SortedBy, filterServiceName = ViewBag.FilterServiceName, filterAmountUsage = ViewBag.FilterAmountUsage, filterTotalPrice = ViewBag.FilterTotalPrice })">Next</a>
@@ -82,58 +82,35 @@ var currentPage = Model.CurrentPage;
                     <label for="filterServiceName" class="form-label">Назва сервісу</label>
                     <select id="filterServiceName" name="filterServiceName" class="form-select">
                         <option value="">Select a service</option>
-                        @if (Model._uServices != null)
+                        @if (Model.Services != null)
                         {
-                        foreach (var service in Model._uServices)
-                        {
-                        <option value="@service.Id">@service.ServiceName</option>
-                        }
+                            foreach (var service in Model.Services)
+                            {
+                                <option value="@service.ServiceName">@service.ServiceName</option>
+                            }
                         }
                     </select>
                 </div>
-
                 <div class="mb-3">
-                    <label for="filterAmountUsage" class="form-label">Amount Usage</label>
-                    <input type="text" id="filterAmountUsage" name="filterAmountUsage" class="form-control" placeholder="Filter by Amount Usage"/>
+                    <label for="filterAmountUsage" class="form-label">Використання</label>
+                    <input type="text" id="filterAmountUsage" name="filterAmountUsage" class="form-control" placeholder="Enter amount usage">
                 </div>
-
                 <div class="mb-3">
-                    <label for="filterTotalPrice" class="form-label">Total Price</label>
-                    <input type="text" id="filterTotalPrice" name="filterTotalPrice" class="form-control" placeholder="Filter by Total Price"/>
+                    <label for="filterTotalPrice" class="form-label">Загальна вартість</label>
+                    <input type="text" id="filterTotalPrice" name="filterTotalPrice" class="form-control" placeholder="Enter total price">
                 </div>
-
-                <div class="mb-3">
-                    <label for="sortedBy" class="form-label">Сортування за</label>
-                    <select id="sortedBy" name="sortedBy" class="form-select">
-                        <option value="">Select an option</option>
-                        <option value="Id">Id</option>
-                        <option value="Date">Date</option>
-                        <option value="AmountUsage">Amount Usage</option>
-                        <option value="TotalPrice">Total Price</option>
-                    </select>
-                </div>
-
-                <button type="submit" class="btn btn-primary w-100">Застосувати</button>
-                <a href="@Url.Action("Index")" class="btn btn-secondary w-100 mt-2">Скинути фільтри</a>
+                <button type="submit" class="btn btn-primary">Пошук</button>
+                <a href="@Url.Action("Index")" class="btn btn-secondary">Скинути</a>
             </form>
         </div>
     </div>
 </div>
 
 @section Scripts {
-<script>
-    document.getElementById('toggleSidebar').addEventListener('click', function () {
-        var sidebar = document.getElementById('sidebar');
-        var tableContainer = document.getElementById('tableContainer');
-        if (sidebar.style.display === 'none' || sidebar.style.display === '') {
-            sidebar.style.display = 'block';
-            tableContainer.classList.remove('col-md-12');
-            tableContainer.classList.add('col-md-9');
-        } else {
-            sidebar.style.display = 'none';
-            tableContainer.classList.remove('col-md-9');
-            tableContainer.classList.add('col-md-12');
-        }
-    });
-</script>
+    <script>
+        document.getElementById("toggleSidebar").addEventListener("click", function() {
+            var sidebar = document.getElementById("sidebar");
+            sidebar.style.display = (sidebar.style.display === "none") ? "block" : "none";
+        });
+    </script>
 }
