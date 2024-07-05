@@ -1,92 +1,141 @@
-﻿@model List<WebKomunalka.Net8.Models.Service>
+﻿@model ServiceViewIndexModel
 
 @{
 ViewData["Title"] = "Services";
+var totalPages = Model.TotalPages;
+var currentPage = Model.CurrentPage;
 }
 
 <h2 class="text-center my-4">@ViewData["Title"]</h2>
 
 <div class="container">
-    <form method="get" action="@Url.Action("Index", "Service")" class="row mb-4">
-        <div class="col-md-3">
-            <label for="filterServiceName" class="form-label">Назва сервісу</label>
-            <input type="text" class="form-control" id="filterServiceName" name="filterServiceName" value="@ViewBag.FilterServiceName">
-        </div>
-        <div class="col-md-3">
-            <label for="filterUnitPrice" class="form-label">Ціна за одиницю</label>
-            <input type="number" class="form-control" id="filterUnitPrice" name="filterUnitPrice" value="@ViewBag.FilterUnitPrice">
-        </div>
-        <div class="col-md-3">
-            <label for="filterUnitType" class="form-label">Тип одиниці</label>
-            <input type="text" class="form-control" id="filterUnitType" name="filterUnitType" value="@ViewBag.FilterUnitType">
-        </div>
-        <div class="col-md-3">
-            <label for="filterCompany" class="form-label">Компанія</label>
-            <input type="text" class="form-control" id="filterCompany" name="filterCompany" value="@ViewBag.FilterCompany">
-        </div>
-        <div class="col-md-12 mt-3">
-            <button type="submit" class="btn btn-primary">Застосувати</button>
-            <a href="@Url.Action("Index", "Service", new { searchQuery = (string)null })" class="btn btn-secondary">Скинути фільтри</a>
-        </div>
-    </form>
+    <div class="row flex-lg-nowrap">
+        <div id="tableContainer" class="col-12 col-lg-9 mb-4">
+            <div class="row mb-3">
+                <div class="col-md-6 text-start">
+                    <a href="@Url.Action("AddService")" class="btn btn-success">Додати новий сервіс</a>
+                </div>
+                <div class="col-md-6 text-end">
+                    <button id="toggleSidebar" class="btn btn-primary">Показати/Приховати сайдбар</button>
+                </div>
+            </div>
 
-    <div class="row mb-3">
-        <div class="col-md-12 text-end">
-            <a href="@Url.Action("AddService", "Service")" class="btn btn-success">Додати новий сервіс</a>
-        </div>
-    </div>
+            <table class="table table-striped table-bordered">
+                <thead>
+                <tr>
+                    <th>Service Name</th>
+                    <th>Unit Price</th>
+                    <th>Unit Type</th>
+                    <th>Company</th>
+                    <th>Actions</th>
+                </tr>
+                </thead>
+                <tbody>
+                @if (Model.Services != null && Model.Services.Any())
+                {
+                foreach (var service in Model.Services)
+                {
+                <tr>
+                    <td>@service.ServiceName</td>
+                    <td>@service.UnitPrice</td>
+                    <td>@service.UnitType</td>
+                    <td>@service.Company</td>
+                    <td>
+                        <a href="@Url.Action("EditService", new { id = service.Id })" class="btn btn-info btn-sm">Редагувати</a>
+                        <a href="@Url.Action("DeleteService", new { id = service.Id })" class="btn btn-danger btn-sm">Видалити</a>
+                    </td>
+                </tr>
+                }
+                }
+                else
+                {
+                <tr>
+                    <td colspan="5" class="text-center">Сервісів НЕ знайдено</td>
+                </tr>
+                }
+                </tbody>
+            </table>
 
-    <div class="table-responsive">
-        @if (Model == null || !Model.Any())
-        {
-        <div class="alert alert-danger text-center" role="alert">
-            Сервісів НЕ знайдено
+            <nav aria-label="Page navigation">
+                <ul class="pagination justify-content-center">
+                    <li class="page-item @(currentPage == 1 ? "disabled" : "")">
+                        <a class="page-link" href="@Url.Action("Index", new { page = currentPage - 1, filterServiceName = ViewBag.FilterServiceName, filterUnitPriceMin = ViewBag.FilterUnitPriceMin, filterUnitPriceMax = ViewBag.FilterUnitPriceMax, filterUnitType = ViewBag.FilterUnitType, filterCompany = ViewBag.FilterCompany })">Previous</a>
+                    </li>
+                    @for (int i = 1; i <= totalPages; i++)
+                    {
+                    <li class="page-item @(currentPage == i ? "active" : "")">
+                        <a class="page-link" href="@Url.Action("Index", new { page = i, filterServiceName = ViewBag.FilterServiceName, filterUnitPriceMin = ViewBag.FilterUnitPriceMin, filterUnitPriceMax = ViewBag.FilterUnitPriceMax, filterUnitType = ViewBag.FilterUnitType, filterCompany = ViewBag.FilterCompany })">@i</a>
+                    </li>
+                    }
+                    <li class="page-item @(currentPage == totalPages ? "disabled" : "")">
+                        <a class="page-link" href="@Url.Action("Index", new { page = currentPage + 1, filterServiceName = ViewBag.FilterServiceName, filterUnitPriceMin = ViewBag.FilterUnitPriceMin, filterUnitPriceMax = ViewBag.FilterUnitPriceMax, filterUnitType = ViewBag.FilterUnitType, filterCompany = ViewBag.FilterCompany })">Next</a>
+                    </li>
+                </ul>
+            </nav>
         </div>
-        <table class="table table-striped" style="background-color: #f8d7da;">
-            <thead class="thead-dark">
-            <tr>
-                <th>Service Name</th>
-                <th>Unit Price</th>
-                <th>Unit Type</th>
-                <th>Company</th>
-                <th>Actions</th>
-            </tr>
-            </thead>
-            <tbody>
-            <tr>
-                <td colspan="5" class="text-center">Сервісів НЕ знайдено</td>
-            </tr>
-            </tbody>
-        </table>
-        }
-        else
-        {
-        <table class="table table-striped">
-            <thead class="thead-dark">
-            <tr>
-                <th>Service Name</th>
-                <th>Unit Price</th>
-                <th>Unit Type</th>
-                <th>Company</th>
-                <th>Actions</th>
-            </tr>
-            </thead>
-            <tbody>
-            @foreach (var service in Model)
-            {
-            <tr>
-                <td>@service.ServiceName</td>
-                <td>@service.UnitPrice</td>
-                <td>@service.UnitType</td>
-                <td>@service.Company</td>
-                <td>
-                    <a href="@Url.Action("EditService", "Service", new { id = service.Id })" class="btn btn-info btn-sm">Редагувати</a>
-                    <a href="@Url.Action("DeleteService", "Service", new { id = service.Id })" class="btn btn-danger btn-sm">Видалити</a>
-                </td>
-            </tr>
-            }
-            </tbody>
-        </table>
-        }
+
+        <div id="sidebar" class="col-12 col-lg-3">
+            <form method="get" class="mb-4">
+                <!-- Service Name Filter -->
+                <div class="mb-3">
+                    <label for="filterServiceName" class="form-label">Назва сервісу</label>
+                    <input type="text" id="filterServiceName" name="filterServiceName" class="form-control" value="@ViewBag.FilterServiceName">
+                </div>
+
+                <!-- Unit Price Filter -->
+                <div class="mb-3">
+                    <label class="form-label">Ціна за одиницю</label>
+                    <div class="input-group">
+                        <input type="number" id="filterUnitPriceMin" name="filterUnitPriceMin" class="form-control" placeholder="Від" value="@ViewBag.FilterUnitPriceMin">
+                        <input type="number" id="filterUnitPriceMax" name="filterUnitPriceMax" class="form-control" placeholder="До" value="@ViewBag.FilterUnitPriceMax">
+                    </div>
+                </div>
+
+                <!-- Unit Type Filter -->
+                <div class="mb-3">
+                    <label for="filterUnitType" class="form-label">Тип одиниці</label>
+                    <input type="text" id="filterUnitType" name="filterUnitType" class="form-control" value="@ViewBag.FilterUnitType">
+                </div>
+
+                <!-- Company Filter -->
+                <div class="mb-3">
+                    <label for="filterCompany" class="form-label">Компанія</label>
+                    <input type="text" id="filterCompany" name="filterCompany" class="form-control" value="@ViewBag.FilterCompany">
+                </div>
+
+                <button type="submit" class="btn btn-primary">Пошук</button>
+                <a href="@Url.Action("Index")" class="btn btn-secondary">Скинути</a>
+            </form>
+        </div>
     </div>
 </div>
+
+@section Styles {
+<style>
+    #sidebar {
+        transition: all 0.3s ease-in-out;
+    }
+
+    #tableContainer {
+        transition: all 0.3s ease-in-out;
+    }
+</style>
+}
+
+@section Scripts {
+<script>
+    document.getElementById("toggleSidebar").addEventListener("click", function() {
+        var sidebar = document.getElementById("sidebar");
+        var tableContainer = document.getElementById("tableContainer");
+        if (sidebar.style.display === "none" || sidebar.style.display === "") {
+            sidebar.style.display = "block";
+            tableContainer.classList.remove("col-12");
+            tableContainer.classList.add("col-lg-9");
+        } else {
+            sidebar.style.display = "none";
+            tableContainer.classList.remove("col-lg-9");
+            tableContainer.classList.add("col-12");
+        }
+    });
+</script>
+}
