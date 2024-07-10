@@ -23,8 +23,9 @@ namespace WebKomunalka.Net8.Controllers
             return cUser?.Id ?? "NotFound";
         }
 
-        // Перевіряє чи поля для фільтрів/сортування не пусті
-        public List<string> InputValidation(string? filterServiceName, string? filterAmountUsageMin, string? filterAmountUsageMax, string? filterTotalPriceMin, string? filterTotalPriceMax)
+// Перевіряє чи поля для фільтрів/сортування не пусті
+        public List<string> InputValidation(string? filterServiceName, string? filterAmountUsageMin,
+            string? filterAmountUsageMax, string? filterTotalPriceMin, string? filterTotalPriceMax)
         {
             var notEmptyValues = new List<string>();
 
@@ -56,7 +57,8 @@ namespace WebKomunalka.Net8.Controllers
             return notEmptyValues;
         }
 
-        public List<Payment> PaymentSearch(string? filterServiceName, string? filterAmountUsageMin, string? filterAmountUsageMax, string? filterTotalPriceMin, string? filterTotalPriceMax)
+        public List<Payment> PaymentSearch(string? filterServiceName, string? filterAmountUsageMin,
+            string? filterAmountUsageMax, string? filterTotalPriceMin, string? filterTotalPriceMax)
         {
             var userId = TakeUserId();
 
@@ -64,47 +66,49 @@ namespace WebKomunalka.Net8.Controllers
             var userPayments = _context.Payments
                 .Include(p => p.Service)
                 .Where(p => p.Service != null && p.Service.UserId == userId)
-                .ToList();
+                .AsQueryable();
 
             if (!string.IsNullOrEmpty(filterServiceName))
             {
-                userPayments = userPayments.Where(p => p.Service.ServiceName.Contains(filterServiceName)).ToList();
+                userPayments = userPayments.Where(p => p.Service.ServiceName.Contains(filterServiceName));
             }
 
-            if (!string.IsNullOrEmpty(filterAmountUsageMin) && double.TryParse(filterAmountUsageMin, out double minUsage))
+            if (!string.IsNullOrEmpty(filterAmountUsageMin) &&
+                double.TryParse(filterAmountUsageMin, out double minUsage))
             {
-                userPayments = userPayments.Where(p => p.AmountUsage >= minUsage).ToList();
+                userPayments = userPayments.Where(p => p.AmountUsage >= minUsage);
             }
 
-            if (!string.IsNullOrEmpty(filterAmountUsageMax) && double.TryParse(filterAmountUsageMax, out double maxUsage))
+            if (!string.IsNullOrEmpty(filterAmountUsageMax) &&
+                double.TryParse(filterAmountUsageMax, out double maxUsage))
             {
-                userPayments = userPayments.Where(p => p.AmountUsage <= maxUsage).ToList();
+                userPayments = userPayments.Where(p => p.AmountUsage <= maxUsage);
             }
 
             if (!string.IsNullOrEmpty(filterTotalPriceMin) && double.TryParse(filterTotalPriceMin, out double minPrice))
             {
-                userPayments = userPayments.Where(p => p.TotalPrice >= minPrice).ToList();
+                userPayments = userPayments.Where(p => p.TotalPrice >= minPrice);
             }
 
             if (!string.IsNullOrEmpty(filterTotalPriceMax) && double.TryParse(filterTotalPriceMax, out double maxPrice))
             {
-                userPayments = userPayments.Where(p => p.TotalPrice <= maxPrice).ToList();
+                userPayments = userPayments.Where(p => p.TotalPrice <= maxPrice);
             }
 
-            return userPayments;
+            return userPayments.ToList();
         }
 
-        // Повертає відсортовані оплати
-        public List<Payment> GetSortedPayments(string sortedBy, List<Payment> inputPayments)
+// Повертає відсортовані оплати
+        public IQueryable<Payment> GetSortedPayments(string sortedBy, IQueryable<Payment> payments)
         {
             return sortedBy switch
             {
-                "Id" => inputPayments.OrderBy(payment => payment.Id).ToList(),
-                "AmountUsage" => inputPayments.OrderBy(payment => payment.AmountUsage).ToList(),
-                "ServiceId" => inputPayments.OrderBy(payment => payment.ServiceId).ToList(),
-                "Date" => inputPayments.OrderBy(payment => DateTime.TryParse(payment.Date, out var date) ? date : DateTime.MinValue).ToList(),
-                "TotalPrice" => inputPayments.OrderBy(payment => payment.TotalPrice).ToList(),
-                _ => inputPayments
+                "Id" => payments.OrderByDescending(payment => payment.Id),
+                "AmountUsage" => payments.OrderBy(payment => payment.AmountUsage),
+                "ServiceId" => payments.OrderBy(payment => payment.ServiceId),
+                "Date" => payments.OrderBy(payment => payment.Date),
+                "TotalPrice" => payments.OrderBy(payment => payment.TotalPrice),
+                _ => payments.OrderByDescending(payment => payment.Id)
             };
         }
 
@@ -113,60 +117,56 @@ namespace WebKomunalka.Net8.Controllers
             return _context.Services.Where(s => s.UserId == userId).ToList();
         }
 
-        public IActionResult Index(string? sortedBy, string? filterServiceName, string? filterAmountUsageMin, string? filterAmountUsageMax, string? filterTotalPriceMin, string? filterTotalPriceMax, int page = 1)
+        public IActionResult Index(string? sortedBy, string? filterServiceName, string? filterAmountUsageMin,
+            string? filterAmountUsageMax, string? filterTotalPriceMin, string? filterTotalPriceMax, int page = 1)
         {
             var currentUserId = TakeUserId();
 
-            var searchParameters = InputValidation(filterServiceName, filterAmountUsageMin, filterAmountUsageMax, filterTotalPriceMin, filterTotalPriceMax);
+            var searchParameters = InputValidation(filterServiceName, filterAmountUsageMin, filterAmountUsageMax,
+                filterTotalPriceMin, filterTotalPriceMax);
             var userServices = GetUserServices(currentUserId);
 
-            List<Payment> userPayments;
             int pageSize = 8;
+            var userPayments = _context.Payments
+                .Include(p => p.Service)
+                .Where(p => p.Service != null && p.Service.UserId == currentUserId)
+                .AsQueryable();
 
-            if (searchParameters.Count == 0)
+            if (searchParameters.Count > 0)
             {
-                userPayments = _context.Payments
-                    .Include(p => p.Service)
-                    .Where(p => p.Service != null && p.Service.UserId == currentUserId)
-                    .Skip((page - 1) * pageSize)
-                    .Take(pageSize)
-                    .ToList();
-
-                if (sortedBy != null)
-                {
-                    userPayments = GetSortedPayments(sortedBy, userPayments);
-                }
-            }
-            else
-            {
-                userPayments = PaymentSearch(filterServiceName, filterAmountUsageMin, filterAmountUsageMax, filterTotalPriceMin, filterTotalPriceMax);
-                userPayments = userPayments.Skip((page - 1) * pageSize).Take(pageSize).ToList();
-
-                if (sortedBy != null)
-                {
-                    userPayments = GetSortedPayments(sortedBy, userPayments);
-                }
+                userPayments = PaymentSearch(filterServiceName, filterAmountUsageMin, filterAmountUsageMax,
+                    filterTotalPriceMin, filterTotalPriceMax).AsQueryable();
             }
 
-            int totalPayments = _context.Payments.Count(p => p.Service != null && p.Service.UserId == currentUserId);
+            userPayments = GetSortedPayments(sortedBy, userPayments);
+
+            int totalPayments = userPayments.Count();
             int totalPages = (int)Math.Ceiling(totalPayments / (double)pageSize);
 
-            var model = new PaymentViewIndexModel(userPayments, userServices, page, totalPages);
+            var pagedPayments = userPayments
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToList();
+
+            var model = new PaymentViewIndexModel(pagedPayments, userServices, page, totalPages);
 
             return View(model);
         }
 
+
         public IActionResult AddPayment()
         {
-            var currentUser = _userManager.GetUserAsync(User).Result;
-            var currentUserId = currentUser.Id;
+            var userId = TakeUserId();
 
-            var services = _context.Services.Where(s => s.UserId == currentUserId).ToList();
+            var services = _context.Services.Where(s => s.UserId == userId).ToList();
+
+            ViewBag.UserServices = services;
 
             Payment newPayment = new Payment();
 
             return View(newPayment);
         }
+
 
         [HttpPost]
         public IActionResult AddPaymentPost(Payment newPayment)

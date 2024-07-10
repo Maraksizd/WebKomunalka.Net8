@@ -39,21 +39,19 @@ namespace WebKomunalka.Net8.Controllers
 
         public List<Service> ServicesSearch(List<Service> allServices, List<string> inputParameters)
         {
-            List<Service> foundServices = new List<Service>();
+            List<Service> trueServices = new List<Service>();
 
             foreach (var service in allServices)
             {
-                if ((string.IsNullOrEmpty(service.ServiceName) || inputParameters.Contains(service.ServiceName)) &&
-                    (string.IsNullOrEmpty(service.UnitPrice.ToString()) ||
-                     inputParameters.Contains(service.UnitPrice.ToString())) &&
-                    (string.IsNullOrEmpty(service.UnitType) || inputParameters.Contains(service.UnitType)) &&
-                    (string.IsNullOrEmpty(service.Company) || inputParameters.Contains(service.Company)))
+                if (inputParameters.Contains(service.ServiceName) ||
+                    inputParameters.Contains(service.UnitPrice.ToString()) ||
+                    inputParameters.Contains(service.UnitType) || inputParameters.Contains(service.Company))
                 {
-                    foundServices.Add(service);
+                    trueServices.Add(service);
                 }
             }
 
-            return foundServices;
+            return trueServices;
         }
 
         public List<string> CheckNonNullable(string? filterServiceName, double? filterUnitPriceMin,
@@ -87,30 +85,36 @@ namespace WebKomunalka.Net8.Controllers
             double? filterUnitPriceMax, string? filterUnitType, string? filterCompany, string? sortedBy, int page = 1)
         {
             var currentUserId = await TakeUserIdAsync();
-
             var currentUserServices = await _context.Services.Where(s => s.UserId == currentUserId).ToListAsync();
-            ServiceViewIndexModel viewModel = new ServiceViewIndexModel();
 
-            viewModel.TotalPages = (int)Math.Ceiling(currentUserServices.Count / 10.0);
-            viewModel.CurrentPage = page;
+            ServiceViewIndexModel viewModel = new ServiceViewIndexModel
+            {
+                TotalPages = (int)Math.Ceiling(currentUserServices.Count / 10.0),
+                CurrentPage = page
+            };
 
             var nonNullable = CheckNonNullable(filterServiceName, filterUnitPriceMin, filterUnitPriceMax,
                 filterUnitType, filterCompany, sortedBy);
 
-            if (nonNullable.Count != 0)
+            if (nonNullable.Count == 0)
             {
-                var allServices = await _context.Services.Where(s => s.UserId == currentUserId).ToListAsync();
-                var foundServices = ServicesSearch(allServices, nonNullable);
-
-                viewModel.Services = SortServices(sortedBy ?? string.Empty, foundServices);
+                viewModel.Services = currentUserServices.Skip((page - 1) * 10).Take(10).ToList();
             }
             else
             {
-                viewModel.Services = SortServices(sortedBy ?? string.Empty, currentUserServices);
+                var foundServices = ServicesSearch(currentUserServices, nonNullable);
+
+                if (!string.IsNullOrEmpty(sortedBy))
+                {
+                    foundServices = SortServices(sortedBy, foundServices);
+                }
+
+                viewModel.Services = foundServices.Skip((page - 1) * 10).Take(10).ToList();
             }
 
             return View(viewModel);
         }
+
 
         public IActionResult AddService()
         {

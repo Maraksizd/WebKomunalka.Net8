@@ -4,6 +4,7 @@
 ViewData["Title"] = "Services";
 var totalPages = Model.TotalPages;
 var currentPage = Model.CurrentPage;
+var userServices = ViewBag.UserServices as List<Service>;
 }
 
 <h2 class="text-center my-4">@ViewData["Title"]</h2>
@@ -76,31 +77,22 @@ var currentPage = Model.CurrentPage;
 
         <div id="sidebar" class="col-12 col-lg-3">
             <form method="get" class="mb-4">
-                <!-- Service Name Filter -->
-                <div class="mb-3">
-                    <label for="filterServiceName" class="form-label">Назва сервісу</label>
-                    <input type="text" id="filterServiceName" name="filterServiceName" class="form-control" value="@ViewBag.FilterServiceName">
-                </div>
 
-                <!-- Unit Price Filter -->
                 <div class="mb-3">
-                    <label class="form-label">Ціна за одиницю</label>
-                    <div class="input-group">
-                        <input type="number" id="filterUnitPriceMin" name="filterUnitPriceMin" class="form-control" placeholder="Від" value="@ViewBag.FilterUnitPriceMin">
-                        <input type="number" id="filterUnitPriceMax" name="filterUnitPriceMax" class="form-control" placeholder="До" value="@ViewBag.FilterUnitPriceMax">
-                    </div>
-                </div>
-
-                <!-- Unit Type Filter -->
-                <div class="mb-3">
-                    <label for="filterUnitType" class="form-label">Тип одиниці</label>
-                    <input type="text" id="filterUnitType" name="filterUnitType" class="form-control" value="@ViewBag.FilterUnitType">
-                </div>
-
-                <!-- Company Filter -->
-                <div class="mb-3">
-                    <label for="filterCompany" class="form-label">Компанія</label>
-                    <input type="text" id="filterCompany" name="filterCompany" class="form-control" value="@ViewBag.FilterCompany">
+                    <label for="filterServiceName" class="form-label">Виберіть сервіс</label>
+                    <select id="filterServiceName" name="filterServiceName" class="form-select">
+                        <option value="">Всі сервіси</option>
+                        @if (Model.Services != null)
+                        {
+                        @foreach (var service in Model.Services)
+                        {
+                        <option value="@service.ServiceName"
+                                selected="@(ViewBag.FilterServiceName == service.ServiceName ? "selected" : null)">
+                            @service.ServiceName
+                        </option>
+                        }
+                        }
+                    </select>
                 </div>
 
                 <button type="submit" class="btn btn-primary">Пошук</button>
