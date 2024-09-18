@@ -23,103 +23,47 @@ namespace WebKomunalka.Net8.Controllers
             return cUser?.Id ?? "NotFound";
         }
 
-// Перевіряє чи поля для фільтрів/сортування не пусті
-        public List<string> InputValidation(string? filterServiceName, string? filterAmountUsageMin,
-            string? filterAmountUsageMax, string? filterTotalPriceMin, string? filterTotalPriceMax)
-        {
-            var notEmptyValues = new List<string>();
-
-            if (!string.IsNullOrEmpty(filterServiceName))
-            {
-                notEmptyValues.Add(filterServiceName);
-            }
-
-            if (!string.IsNullOrEmpty(filterAmountUsageMin))
-            {
-                notEmptyValues.Add(filterAmountUsageMin);
-            }
-
-            if (!string.IsNullOrEmpty(filterAmountUsageMax))
-            {
-                notEmptyValues.Add(filterAmountUsageMax);
-            }
-
-            if (!string.IsNullOrEmpty(filterTotalPriceMin))
-            {
-                notEmptyValues.Add(filterTotalPriceMin);
-            }
-
-            if (!string.IsNullOrEmpty(filterTotalPriceMax))
-            {
-                notEmptyValues.Add(filterTotalPriceMax);
-            }
-
-            return notEmptyValues;
-        }
-
-        public List<Payment> PaymentSearch(string? filterServiceName, string? filterAmountUsageMin,
-            string? filterAmountUsageMax, string? filterTotalPriceMin, string? filterTotalPriceMax)
-        {
-            var userId = TakeUserId();
-
-            // Отримання всіх платежів користувача
-            var userPayments = _context.Payments
-                .Include(p => p.Service)
-                .Where(p => p.Service != null && p.Service.UserId == userId)
-                .AsQueryable();
-
-            if (!string.IsNullOrEmpty(filterServiceName))
-            {
-                userPayments = userPayments.Where(p => p.Service.ServiceName.Contains(filterServiceName));
-            }
-
-            if (!string.IsNullOrEmpty(filterAmountUsageMin) &&
-                double.TryParse(filterAmountUsageMin, out double minUsage))
-            {
-                userPayments = userPayments.Where(p => p.AmountUsage >= minUsage);
-            }
-
-            if (!string.IsNullOrEmpty(filterAmountUsageMax) &&
-                double.TryParse(filterAmountUsageMax, out double maxUsage))
-            {
-                userPayments = userPayments.Where(p => p.AmountUsage <= maxUsage);
-            }
-
-            if (!string.IsNullOrEmpty(filterTotalPriceMin) && double.TryParse(filterTotalPriceMin, out double minPrice))
-            {
-                userPayments = userPayments.Where(p => p.TotalPrice >= minPrice);
-            }
-
-            if (!string.IsNullOrEmpty(filterTotalPriceMax) && double.TryParse(filterTotalPriceMax, out double maxPrice))
-            {
-                userPayments = userPayments.Where(p => p.TotalPrice <= maxPrice);
-            }
-
-            return userPayments.ToList();
-        }
-
-// Повертає відсортовані оплати
-        public IQueryable<Payment> GetSortedPayments(string sortedBy, IQueryable<Payment> payments)
-        {
-            return sortedBy switch
-            {
-                "Id" => payments.OrderByDescending(payment => payment.Id),
-                "AmountUsage" => payments.OrderBy(payment => payment.AmountUsage),
-                "ServiceId" => payments.OrderBy(payment => payment.ServiceId),
-                "Date" => payments.OrderBy(payment => payment.Date),
-                "TotalPrice" => payments.OrderBy(payment => payment.TotalPrice),
-                _ => payments.OrderByDescending(payment => payment.Id)
-            };
-        }
-
         public List<Service> GetUserServices(string userId)
         {
             return _context.Services.Where(s => s.UserId == userId).ToList();
         }
 
+        public bool IsUserLogined()
+        {
+            return _userManager.GetUserAsync(User).Result != null;
+        }
+
+        // Перевіряє чи поля для фільтрів/сортування не пусті
+        public List<string> InputValidation(params string?[] filters)
+        {
+            return filters.Where(filter => !string.IsNullOrEmpty(filter)).ToList();
+        } // ready
+
+        public List<Payment> TakeSoprtedPaymenets()
+        {
+            var currentUserId = TakeUserId();
+            var usersServices = GetUserServices(currentUserId);
+
+            var payments = _context.Payments.Include(p => p.Service)
+                .Where(p => p.Service != null && p.Service.UserId == currentUserId)
+                .ToList();
+
+            return payments;
+        }
+
+
         public IActionResult Index(string? sortedBy, string? filterServiceName, string? filterAmountUsageMin,
             string? filterAmountUsageMax, string? filterTotalPriceMin, string? filterTotalPriceMax, int page = 1)
         {
+            // add check user logined or not
+
+            var loginStatus = IsUserLogined();
+
+            if (!loginStatus)
+            {
+                return RedirectToAction("Index", "Home");
+            }
+
             var currentUserId = TakeUserId();
 
             var searchParameters = InputValidation(filterServiceName, filterAmountUsageMin, filterAmountUsageMax,
@@ -134,11 +78,8 @@ namespace WebKomunalka.Net8.Controllers
 
             if (searchParameters.Count > 0)
             {
-                userPayments = PaymentSearch(filterServiceName, filterAmountUsageMin, filterAmountUsageMax,
-                    filterTotalPriceMin, filterTotalPriceMax).AsQueryable();
             }
 
-            userPayments = GetSortedPayments(sortedBy, userPayments);
 
             int totalPayments = userPayments.Count();
             int totalPages = (int)Math.Ceiling(totalPayments / (double)pageSize);
@@ -152,7 +93,6 @@ namespace WebKomunalka.Net8.Controllers
 
             return View(model);
         }
-
 
         public IActionResult AddPayment()
         {

@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using WebKomunalka.Net8.Data;
 
@@ -10,9 +11,11 @@ using WebKomunalka.Net8.Data;
 namespace WebKomunalka.Net8.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240904085813_addAlarmsTablets1")]
+    partial class addAlarmsTablets1
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "8.0.3");
@@ -222,6 +225,84 @@ namespace WebKomunalka.Net8.Data.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
+            modelBuilder.Entity("WebKomunalka.Net8.Models.AllAlarmModel", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("AlarmName")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<double>("AlarmSize")
+                        .HasColumnType("REAL");
+
+                    b.Property<DateTime>("Duration")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("GroupId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("RealAlarmName")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("AllAlarmModels");
+                });
+
+            modelBuilder.Entity("WebKomunalka.Net8.Models.CityModel", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("CityId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("CityName")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("CityModels");
+                });
+
+            modelBuilder.Entity("WebKomunalka.Net8.Models.LogsModel", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("AlarmId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("Date")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("SityId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("StartTime")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("WSId")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("LogsModels");
+                });
+
             modelBuilder.Entity("WebKomunalka.Net8.Models.Payment", b =>
                 {
                     b.Property<int>("Id")
@@ -240,10 +321,6 @@ namespace WebKomunalka.Net8.Data.Migrations
 
                     b.Property<double>("TotalPrice")
                         .HasColumnType("REAL");
-
-                    b.Property<string>("UserId")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
 
                     b.HasKey("Id");
 
@@ -282,6 +359,23 @@ namespace WebKomunalka.Net8.Data.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("Services");
+                });
+
+            modelBuilder.Entity("WebKomunalka.Net8.Models.WorkStantionModel", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("CityId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("WSId")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("WorkStantionModels");
                 });
 
             modelBuilder.Entity("WebKomunalka.Net8.Models.ApplicationUser", b =>

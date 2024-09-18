@@ -1,7 +1,7 @@
 ﻿@model WebKomunalka.Net8.Models.Payment
 
 @{
-var userServices = ViewBag.UserServices as List<Service>;
+    var userServices = ViewBag.UserServices as List<Service>;
 }
 
 <h1 class="mb-4">Додати платіж</h1>
@@ -9,7 +9,7 @@ var userServices = ViewBag.UserServices as List<Service>;
 <form asp-action="AddPaymentPost" method="post" class="needs-validation" novalidate>
     <div class="form-group mb-3">
         <label for="Date">Дата</label>
-        <input type="date" class="form-control" id="Date" name="Date" required>
+        <input type="text" id="datepicker"> <!-- Add this line for add datapicker -->
         <div class="invalid-feedback">
             Будь ласка, виберіть дату.
         </div>
@@ -37,7 +37,7 @@ var userServices = ViewBag.UserServices as List<Service>;
             <option value="">Виберіть сервіс</option>
             @foreach (var service in userServices)
             {
-            <option value="@service.Id">@service.ServiceName</option>
+                <option value="@service.Id">@service.ServiceName</option>
             }
         </select>
         <div class="invalid-feedback">
@@ -49,7 +49,8 @@ var userServices = ViewBag.UserServices as List<Service>;
 </form>
 
 @section Scripts {
-<script>
+    <script>
+        var datepicker = new Datepicker('#datepicker'); <!-- Add this line for add datapicker -->
     document.addEventListener('DOMContentLoaded', (event) => {
         let dateInput = document.getElementById('Date');
         let today = new Date().toISOString().substr(0, 10);
@@ -74,5 +75,6 @@ var userServices = ViewBag.UserServices as List<Service>;
             });
         }, false);
     })();
-</script>
+
+    </script>
 }

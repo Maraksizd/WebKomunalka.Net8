@@ -5,9 +5,20 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <title>@ViewData["Title"] - WebKomunalka.Net8</title>
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css"/>
+    <link rel="stylesheet" href="~/css/datepicker.material.css"/> <!-- Add this line for add datapicker -->
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true"/>
     <link rel="stylesheet" href="~/WebKomunalka.Net8.styles.css" asp-append-version="true"/>
     @RenderSection("Styles", required: false)
+    <style>
+        /* Активуємо випадаюче меню при наведенні */
+        .dropdown:hover .dropdown-menu {
+            display: block;
+        }
+        /* Стилі для активної кнопки Payment */
+        .nav-link.active {
+            background-color: #f8f9fa;
+        }
+    </style>
 </head>
 <body>
 <header>
@@ -18,16 +29,17 @@
                     aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>
+            @* комент *@
             <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
                 <ul class="navbar-nav flex-grow-1">
                     <li class="nav-item">
                         <a class="nav-link text-dark" asp-area="" asp-controller="Service" asp-action="Index">Service's</a>
                     </li>
                     <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <a class="nav-link dropdown-toggle" href="/payment" id="navbarDropdown1" role="button">
                             Payment
                         </a>
-                        <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
+                        <ul class="dropdown-menu" aria-labelledby="navbarDropdown1">
                             <li>
                                 <a class="dropdown-item" asp-area="" asp-controller="Payment" asp-action="Index">Your payments</a>
                             </li>
@@ -37,8 +49,8 @@
                         </ul>
                     </li>
                 </ul>
-                <partial name="_LoginPartial"/>
             </div>
+            @* комент *@
         </div>
     </nav>
 </header>
@@ -53,9 +65,20 @@
         &copy; 2024 - WebKomunalka.Net8 - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
     </div>
 </footer>
+<script src="~/js/datepicker.js"></script> <!-- Add this line for add datapicker -->
 <script src="~/lib/jquery/dist/jquery.min.js"></script>
 <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
 <script src="~/js/site.js" asp-append-version="true"></script>
+<script>
+    // Обробник для активації кнопки Payment
+    document.querySelector('#navbarDropdown1').addEventListener('click', function () {
+        if (!this.classList.contains('active')) {
+            this.classList.add('active');
+        } else {
+            this.classList.remove('active');
+        }
+    });
+</script>
 @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

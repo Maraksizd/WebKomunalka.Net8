@@ -32,11 +32,14 @@ public class HomeController : Controller
 
         var currentUserId = currentUser.Id;
 
-        var allServices =
-            _context.Services.Where(s => s.UserId == currentUserId).ToList(); // ліст всіх сервісів користувача
+        var allServices = await _context.Services.Where(s => s.UserId == currentUserId).ToListAsync(); // ліст всіх сервісів користувача
 
-        var allPayments = _context.Payments.Include(p => p.Service).Where(p => p.Service.UserId == currentUserId)
-            .ToList(); // ліст всіх платежів користувача
+        var allPayments = await _context.Payments.Include(p => p.Service).Where(p => p.Service.UserId == currentUserId).ToListAsync(); // ліст всіх платежів користувача
+
+        if (!allPayments.Any())
+        {
+            return View("IndexNoPayments");
+        } // no payments
 
         double totalCost = allPayments.Sum(p => p.TotalPrice);
 
@@ -51,7 +54,6 @@ public class HomeController : Controller
             .ToList();
 
         var model = new HomeViewModel { TotalCost = totalCost, BigPayments = bigPayments };
-
 
         return View(model);
     }

@@ -13,4 +13,6 @@ public class Payment
     public int ServiceId { get; set; } = 0;// 5
 
     public Service? Service { get; set; } = new Service();
+    
+    public string UserId { get; set; } = String.Empty;// 6
 }

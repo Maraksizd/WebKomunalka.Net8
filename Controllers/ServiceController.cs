@@ -17,6 +17,13 @@ namespace WebKomunalka.Net8.Controllers
             _userManager = userManager;
         }
 
+        
+        public bool IsUserLogined()
+        {
+            return _userManager.GetUserAsync(User).Result != null;
+        }
+        
+        
         // Get the current user ID
         private async Task<string> TakeUserIdAsync()
         {
@@ -84,6 +91,12 @@ namespace WebKomunalka.Net8.Controllers
         public async Task<IActionResult> Index(string? filterServiceName, double? filterUnitPriceMin,
             double? filterUnitPriceMax, string? filterUnitType, string? filterCompany, string? sortedBy, int page = 1)
         {
+            
+            if (!IsUserLogined())
+            {
+                return RedirectToAction("Index", "Home");
+            }
+            
             var currentUserId = await TakeUserIdAsync();
             var currentUserServices = await _context.Services.Where(s => s.UserId == currentUserId).ToListAsync();
 

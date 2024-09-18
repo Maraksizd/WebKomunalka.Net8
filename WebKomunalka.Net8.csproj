@@ -20,4 +20,40 @@
         <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="8.0.2" />
     </ItemGroup>
 
+    <ItemGroup>
+      <_ContentIncludedByDefault Remove="Views\ListGeneration\Index.cshtml" />
+      <_ContentIncludedByDefault Remove="wwwroot\js\Datepicker.js-master\.babelrc" />
+      <_ContentIncludedByDefault Remove="wwwroot\js\Datepicker.js-master\.gitignore" />
+      <_ContentIncludedByDefault Remove="wwwroot\js\Datepicker.js-master\.travis.yml" />
+      <_ContentIncludedByDefault Remove="wwwroot\js\Datepicker.js-master\demo\demo.css" />
+      <_ContentIncludedByDefault Remove="wwwroot\js\Datepicker.js-master\demo\demo.js" />
+      <_ContentIncludedByDefault Remove="wwwroot\js\Datepicker.js-master\demo\index.html" />
+      <_ContentIncludedByDefault Remove="wwwroot\js\Datepicker.js-master\dist\css\datepicker.material.css" />
+      <_ContentIncludedByDefault Remove="wwwroot\js\Datepicker.js-master\dist\css\datepicker.minimal.css" />
+      <_ContentIncludedByDefault Remove="wwwroot\js\Datepicker.js-master\dist\datepicker.js" />
+      <_ContentIncludedByDefault Remove="wwwroot\js\Datepicker.js-master\LICENSE" />
+      <_ContentIncludedByDefault Remove="wwwroot\js\Datepicker.js-master\package.json" />
+      <_ContentIncludedByDefault Remove="wwwroot\js\Datepicker.js-master\README.md" />
+      <_ContentIncludedByDefault Remove="wwwroot\js\Datepicker.js-master\rollup.config.js" />
+      <_ContentIncludedByDefault Remove="wwwroot\js\Datepicker.js-master\src\defaults.js" />
+      <_ContentIncludedByDefault Remove="wwwroot\js\Datepicker.js-master\src\helpers.js" />
+      <_ContentIncludedByDefault Remove="wwwroot\js\Datepicker.js-master\src\index.d.ts" />
+      <_ContentIncludedByDefault Remove="wwwroot\js\Datepicker.js-master\src\index.js" />
+      <_ContentIncludedByDefault Remove="wwwroot\js\Datepicker.js-master\src\options.js" />
+      <_ContentIncludedByDefault Remove="wwwroot\js\Datepicker.js-master\tests\index.html" />
+      <_ContentIncludedByDefault Remove="wwwroot\js\Datepicker.js-master\tests\lib\jasmine-2.4.1\boot.js" />
+      <_ContentIncludedByDefault Remove="wwwroot\js\Datepicker.js-master\tests\lib\jasmine-2.4.1\console.js" />
+      <_ContentIncludedByDefault Remove="wwwroot\js\Datepicker.js-master\tests\lib\jasmine-2.4.1\jasmine-html.js" />
+      <_ContentIncludedByDefault Remove="wwwroot\js\Datepicker.js-master\tests\lib\jasmine-2.4.1\jasmine.css" />
+      <_ContentIncludedByDefault Remove="wwwroot\js\Datepicker.js-master\tests\lib\jasmine-2.4.1\jasmine.js" />
+      <_ContentIncludedByDefault Remove="wwwroot\js\Datepicker.js-master\tests\lib\jasmine-2.4.1\jasmine_favicon.png" />
+      <_ContentIncludedByDefault Remove="wwwroot\js\Datepicker.js-master\tests\run-jasmine.js" />
+      <_ContentIncludedByDefault Remove="wwwroot\js\Datepicker.js-master\tests\spec\methods.js" />
+      <_ContentIncludedByDefault Remove="wwwroot\js\dist\css\datepicker.material.css" />
+      <_ContentIncludedByDefault Remove="wwwroot\js\dist\css\datepicker.minimal.css" />
+      <_ContentIncludedByDefault Remove="wwwroot\js\dist\datepicker.js" />
+      <_ContentIncludedByDefault Remove="Views\DataPicker\Index.cshtml" />
+      <_ContentIncludedByDefault Remove="Views\Alarm\Index.cshtml" />
+    </ItemGroup>
+
 </Project>
