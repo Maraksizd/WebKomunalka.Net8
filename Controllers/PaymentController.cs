@@ -33,92 +33,124 @@ namespace WebKomunalka.Net8.Controllers
             return _userManager.GetUserAsync(User).Result != null;
         }
 
-        // Перевіряє чи поля для фільтрів/сортування не пусті
+        public PaymentViewIndexModel CompleteTheModel(List<Payment> userPayments, List<Service> userServices,
+            int currentPage, int totalPages)
+        {
+            return new PaymentViewIndexModel(userPayments, userServices, currentPage, totalPages);
+        }
+
         public List<string> InputValidation(params string?[] filters)
         {
             return filters.Where(filter => !string.IsNullOrEmpty(filter)).ToList();
-        } // ready
+        }
 
-        public List<Payment> TakeSoprtedPaymenets()
+        public List<Payment> TakePaymenets()
         {
             var currentUserId = TakeUserId();
             var usersServices = GetUserServices(currentUserId);
 
-            var payments = _context.Payments.Include(p => p.Service)
-                .Where(p => p.Service != null && p.Service.UserId == currentUserId)
+            var payments = _context.Payments
+                .Include(p => p.Service)
+                .Where(p => usersServices.Select(s => s.Id).Contains(p.ServiceId))
                 .ToList();
 
             return payments;
         }
 
+        public List<Payment> SortPayments(List<Payment> payments, string sortedBy)
+        {
+            switch (sortedBy)
+            {
+                case "Date":
+                    return payments.OrderByDescending(p => p.Date).ToList();
+                case "AmountUsage":
+                    return payments.OrderByDescending(p => p.AmountUsage).ToList();
+                case "TotalPrice":
+                    return payments.OrderByDescending(p => p.TotalPrice).ToList();
+                default:
+                    return payments.OrderByDescending(p => p.Id).ToList();
+            }
+        }
 
         public IActionResult Index(string? sortedBy, string? filterServiceName, string? filterAmountUsageMin,
             string? filterAmountUsageMax, string? filterTotalPriceMin, string? filterTotalPriceMax, int page = 1)
         {
-            // add check user logined or not
-
-            var loginStatus = IsUserLogined();
-
-            if (!loginStatus)
+            if (!IsUserLogined())
             {
                 return RedirectToAction("Index", "Home");
             }
 
             var currentUserId = TakeUserId();
-
-            var searchParameters = InputValidation(filterServiceName, filterAmountUsageMin, filterAmountUsageMax,
-                filterTotalPriceMin, filterTotalPriceMax);
+            var userPaymentsList = TakePaymenets();
             var userServices = GetUserServices(currentUserId);
 
-            int pageSize = 8;
-            var userPayments = _context.Payments
-                .Include(p => p.Service)
-                .Where(p => p.Service != null && p.Service.UserId == currentUserId)
-                .AsQueryable();
-
-            if (searchParameters.Count > 0)
+            if (sortedBy == null)
             {
+                sortedBy = "Id"; // За замовчуванням сортування за Id
             }
 
+            // Сортуємо платежі за спаданням Id
+            var sortedPayments = SortPayments(userPaymentsList, sortedBy);
 
-            int totalPayments = userPayments.Count();
-            int totalPages = (int)Math.Ceiling(totalPayments / (double)pageSize);
+            int pageSize = 8;
+            var searchParams = InputValidation(filterServiceName, filterAmountUsageMin, filterAmountUsageMax,
+                filterTotalPriceMin, filterTotalPriceMax);
 
-            var pagedPayments = userPayments
+            if (searchParams.Count == 0)
+            {
+                int totalPayments = sortedPayments.Count();
+                int totalPages = (int)Math.Ceiling(totalPayments / (double)pageSize);
+
+                // Підтримка пагінації
+                var pagedPayments = sortedPayments
+                    .Skip((page - 1) * pageSize)
+                    .Take(pageSize)
+                    .ToList();
+
+                var model = CompleteTheModel(pagedPayments, userServices, page, totalPages);
+                return View(model);
+            }
+
+            // Додаємо фільтрацію тут, якщо потрібно
+
+            int filteredPaymentsCount = sortedPayments.Count();
+            int filteredTotalPages = (int)Math.Ceiling(filteredPaymentsCount / (double)pageSize);
+
+            var filteredPagedPayments = sortedPayments
                 .Skip((page - 1) * pageSize)
                 .Take(pageSize)
                 .ToList();
 
-            var model = new PaymentViewIndexModel(pagedPayments, userServices, page, totalPages);
-
-            return View(model);
+            var filteredModel = CompleteTheModel(filteredPagedPayments, userServices, page, filteredTotalPages);
+            return View(filteredModel);
         }
+
 
         public IActionResult AddPayment()
         {
             var userId = TakeUserId();
-
             var services = _context.Services.Where(s => s.UserId == userId).ToList();
-
             ViewBag.UserServices = services;
-
             Payment newPayment = new Payment();
-
             return View(newPayment);
         }
 
-
         [HttpPost]
-        public IActionResult AddPaymentPost(Payment newPayment)
+        public async Task<IActionResult> AddPaymentPost(Payment newPayment)
         {
             if (ModelState.IsValid)
             {
-                newPayment.Service = null;
+                var currentUser = await _userManager.GetUserAsync(User);
+                if (currentUser == null)
+                {
+                    return RedirectToAction("Index", "Home");
+                }
+
+                newPayment.UserId = currentUser.Id;
+                newPayment.Service = null; // Ensure Service is not set to a new object
 
                 _context.Payments.Add(newPayment);
-
-                _context.SaveChangesAsync();
-
+                await _context.SaveChangesAsync();
                 return RedirectToAction("Index");
             }
             else
@@ -127,25 +159,22 @@ namespace WebKomunalka.Net8.Controllers
             }
         }
 
-        public IActionResult DeletePayment(int id)
+        public async Task<IActionResult> DeletePayment(int id)
         {
-            var payment = _context.Payments.Find(id);
-
+            var payment = await _context.Payments.FindAsync(id);
             if (payment == null)
             {
                 return NotFound();
             }
 
             _context.Payments.Remove(payment);
-            _context.SaveChangesAsync();
-
+            await _context.SaveChangesAsync();
             return RedirectToAction("Index");
         }
 
-        public IActionResult DetailsPayment(int id)
+        public async Task<IActionResult> DetailsPayment(int id)
         {
-            var payment = _context.Payments.Include(p => p.Service).FirstOrDefault(p => p.Id == id);
-
+            var payment = await _context.Payments.Include(p => p.Service).FirstOrDefaultAsync(p => p.Id == id);
             if (payment == null)
             {
                 return NotFound();
@@ -159,7 +188,6 @@ namespace WebKomunalka.Net8.Controllers
 
             model.Service.UserId = "";
             model.Service.Id = 0;
-
             model.Payment.Id = 0;
             model.Payment.ServiceId = 0;
 
