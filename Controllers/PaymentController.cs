@@ -9,9 +9,9 @@ namespace WebKomunalka.Net8.Controllers
     public class PaymentController : Controller
     {
         private readonly ApplicationDbContext _context;
-        private readonly UserManager<IdentityUser> _userManager;
+        private readonly UserManager<ApplicationUser> _userManager;
 
-        public PaymentController(ApplicationDbContext context, UserManager<IdentityUser> userManager)
+        public PaymentController(ApplicationDbContext context, UserManager<ApplicationUser> userManager)
         {
             _context = context;
             _userManager = userManager;

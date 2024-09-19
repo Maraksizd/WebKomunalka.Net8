@@ -12,9 +12,9 @@ public class HomeController : Controller
     private readonly ILogger<HomeController> _logger;
 
     private readonly ApplicationDbContext _context;
-    private readonly UserManager<IdentityUser> _userManager;
+    private readonly UserManager<ApplicationUser> _userManager;
 
-    public HomeController(ApplicationDbContext context, UserManager<IdentityUser> userManager,
+    public HomeController(ApplicationDbContext context, UserManager<ApplicationUser> userManager,
         ILogger<HomeController> logger)
     {
         _context = context;

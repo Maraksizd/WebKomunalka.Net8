@@ -9,29 +9,25 @@ namespace WebKomunalka.Net8.Controllers
     public class ServiceController : Controller
     {
         private readonly ApplicationDbContext _context;
-        private readonly UserManager<IdentityUser> _userManager;
+        private readonly UserManager<ApplicationUser> _userManager;
 
-        public ServiceController(ApplicationDbContext context, UserManager<IdentityUser> userManager)
+        public ServiceController(ApplicationDbContext context, UserManager<ApplicationUser> userManager)
         {
             _context = context;
             _userManager = userManager;
         }
 
-        
-        public bool IsUserLogined()
+        private async Task<bool> IsUserLoginedAsync()
         {
-            return _userManager.GetUserAsync(User).Result != null;
+            return await _userManager.GetUserAsync(User) != null;
         }
-        
-        
-        // Get the current user ID
+
         private async Task<string> TakeUserIdAsync()
         {
             var currentUser = await _userManager.GetUserAsync(User);
             return currentUser?.Id ?? "NotFound";
         }
 
-        // Function to sort services based on the sorting criteria
         private List<Service> SortServices(string sortedBy, List<Service> services)
         {
             return sortedBy switch
@@ -46,25 +42,17 @@ namespace WebKomunalka.Net8.Controllers
 
         public List<Service> ServicesSearch(List<Service> allServices, List<string> inputParameters)
         {
-            List<Service> trueServices = new List<Service>();
-
-            foreach (var service in allServices)
-            {
-                if (inputParameters.Contains(service.ServiceName) ||
-                    inputParameters.Contains(service.UnitPrice.ToString()) ||
-                    inputParameters.Contains(service.UnitType) || inputParameters.Contains(service.Company))
-                {
-                    trueServices.Add(service);
-                }
-            }
-
-            return trueServices;
+            return allServices.Where(service =>
+                inputParameters.Contains(service.ServiceName) ||
+                inputParameters.Contains(service.UnitPrice.ToString()) ||
+                inputParameters.Contains(service.UnitType) ||
+                inputParameters.Contains(service.Company)).ToList();
         }
 
         public List<string> CheckNonNullable(string? filterServiceName, double? filterUnitPriceMin,
             double? filterUnitPriceMax, string? filterUnitType, string? filterCompany, string? sortedBy)
         {
-            List<string> nonNullable = new List<string>();
+            var nonNullable = new List<string>();
 
             if (!string.IsNullOrEmpty(filterServiceName))
                 nonNullable.Add(filterServiceName);
@@ -87,20 +75,18 @@ namespace WebKomunalka.Net8.Controllers
             return nonNullable;
         }
 
-        // Index action to list services with filtering and sorting
         public async Task<IActionResult> Index(string? filterServiceName, double? filterUnitPriceMin,
             double? filterUnitPriceMax, string? filterUnitType, string? filterCompany, string? sortedBy, int page = 1)
         {
-            
-            if (!IsUserLogined())
+            if (!await IsUserLoginedAsync())
             {
                 return RedirectToAction("Index", "Home");
             }
-            
+
             var currentUserId = await TakeUserIdAsync();
             var currentUserServices = await _context.Services.Where(s => s.UserId == currentUserId).ToListAsync();
 
-            ServiceViewIndexModel viewModel = new ServiceViewIndexModel
+            var viewModel = new ServiceViewIndexModel
             {
                 TotalPages = (int)Math.Ceiling(currentUserServices.Count / 10.0),
                 CurrentPage = page
@@ -128,7 +114,6 @@ namespace WebKomunalka.Net8.Controllers
             return View(viewModel);
         }
 
-
         public IActionResult AddService()
         {
             return View(new Service());
@@ -140,7 +125,14 @@ namespace WebKomunalka.Net8.Controllers
             if (ModelState.IsValid)
             {
                 var currentUser = await _userManager.GetUserAsync(User);
-                newService.UserId = currentUser.Id;
+                
+                if (currentUser == null)
+                {
+                    return RedirectToAction("Index", "Home");
+                }
+
+                newService.User = currentUser;
+                
                 _context.Services.Add(newService);
                 await _context.SaveChangesAsync();
                 return RedirectToAction("Index");
