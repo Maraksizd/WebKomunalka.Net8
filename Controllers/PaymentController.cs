@@ -33,11 +33,11 @@ namespace WebKomunalka.Net8.Controllers
             return _userManager.GetUserAsync(User).Result != null;
         }
 
-        public PaymentViewIndexModel CompleteTheModel(List<Payment> userPayments, List<Service> userServices,
-            int currentPage, int totalPages)
-        {
-            return new PaymentViewIndexModel(userPayments, userServices, currentPage, totalPages);
-        }
+            public PaymentViewIndexModel CompleteTheModel(List<Payment> userPayments, List<Service> userServices,
+                int currentPage, int totalPages)
+            {
+                return new PaymentViewIndexModel(userPayments, userServices, currentPage, totalPages);
+            }
 
         public List<string> InputValidation(params string?[] filters)
         {
@@ -57,6 +57,15 @@ namespace WebKomunalka.Net8.Controllers
             return payments;
         }
 
+        public List<Payment> SearchPayments(string? filterServiceName, string? filterAmountUsageMin,
+            string? filterAmountUsageMax, string? filterTotalPriceMin, string? filterTotalPriceMax)
+        {
+            var payments = new List<Payment>();
+
+            
+            return payments;
+        }
+        
         public List<Payment> SortPayments(List<Payment> payments, string sortedBy)
         {
             switch (sortedBy)
@@ -96,7 +105,7 @@ namespace WebKomunalka.Net8.Controllers
             var searchParams = InputValidation(filterServiceName, filterAmountUsageMin, filterAmountUsageMax,
                 filterTotalPriceMin, filterTotalPriceMax);
 
-            if (searchParams.Count == 0)
+            if (searchParams.Count == 0) 
             {
                 int totalPayments = sortedPayments.Count();
                 int totalPages = (int)Math.Ceiling(totalPayments / (double)pageSize);

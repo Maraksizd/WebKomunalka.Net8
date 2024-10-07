@@ -78,16 +78,34 @@
         @* фільтри: *@
         <div id="sidebar" class="col-12 col-lg-3">
             <form method="get" class="mb-4">
+                <!-- Сортування -->
+                <h5 class="mb-3">Сортування: </h5>
+
+                <div class="mb-3">
+                    <label for="sortedBy" class="form-label">Сортувати за</label>
+                    <select id="sortedBy" name="sortedBy" class="form-select">
+                        <option value="Id">Id</option>
+                        <option value="Date">Date</option>
+                        <option value="AmountUsage">Amount Usage</option>
+                        <option value="TotalPrice">Total Price</option>
+                        <option value="ServiceName">Service Name</option>
+                    </select>
+                </div>
+                
+                <!-- Пошук -->
+                <h5 class="mb-3">Пошук за: </h5>
+
+                <!-- Назва сервісу -->
                 <div class="mb-3">
                     <label for="filterServiceName" class="form-label">Назва сервісу</label>
                     <select id="filterServiceName" name="filterServiceName" class="form-select">
                         <option value="">Select a service</option>
                         @if (Model.Services != null)
                         {
-                            foreach (var service in Model.Services)
-                            {
-                                <option value="@service.ServiceName">@service.ServiceName</option>
-                            }
+                        foreach (var service in Model.Services)
+                        {
+                        <option value="@service.ServiceName">@service.ServiceName</option>
+                        }
                         }
                     </select>
                 </div>
@@ -114,6 +132,8 @@
                 <a href="@Url.Action("Index")" class="btn btn-secondary">Скинути</a>
             </form>
         </div>
+
+
     </div>
 </div>
 
